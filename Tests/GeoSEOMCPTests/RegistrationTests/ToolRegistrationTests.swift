@@ -9,7 +9,7 @@ struct ToolRegistrationTests {
     @Test("allToolHandlers returns expected count")
     func testToolCount() {
         let handlers = allToolHandlers()
-        #expect(handlers.count == 7, "Expected 7 tools (2 utility + 2 citability + 3 crawler), got \(handlers.count)")
+        #expect(handlers.count == 9, "Expected 9 tools, got \(handlers.count)")
     }
 
     @Test("All tool names are unique")
@@ -33,5 +33,8 @@ struct ToolRegistrationTests {
         #expect(map["parse_robots_txt"] != nil, "parse_robots_txt not registered")
         #expect(map["analyze_ai_crawler_access"] != nil, "analyze_ai_crawler_access not registered")
         #expect(map["calculate_ai_visibility_score"] != nil, "calculate_ai_visibility_score not registered")
+        // llms.txt tools
+        #expect(map["validate_llmstxt"] != nil, "validate_llmstxt not registered")
+        #expect(map["categorize_urls_for_llmstxt"] != nil, "categorize_urls_for_llmstxt not registered")
     }
 }

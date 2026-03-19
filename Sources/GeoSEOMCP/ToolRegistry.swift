@@ -7,5 +7,6 @@ public func allToolHandlers() -> [any MCPToolHandler] {
     handlers += getUtilityTools()
     handlers += getCitabilityTools()
     handlers += getCrawlerAccessTools()
+    handlers += getLlmsTxtTools()
     return handlers
 }
