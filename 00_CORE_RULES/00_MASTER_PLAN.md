@@ -143,7 +143,7 @@ GeoSEOMCP/
 - [x] Project bootstrap
 - [x] Constants.swift (crawlers, weights, benchmarks)
 - [x] TextAnalysis.swift (syllable counting, text stats)
-- [ ] Utility tools (2 tools)
+- [x] Utility tools (2 tools: count_syllables, calculate_pronoun_density)
 
 ### Phase 2: Core Analysis (Steps 3-6)
 - [ ] Citability scoring (2 tools)
