@@ -147,7 +147,7 @@ GeoSEOMCP/
 
 ### Phase 2: Core Analysis (Steps 3-6)
 - [x] Citability scoring (2 tools: score_passage_citability, analyze_page_citability)
-- [ ] Crawler access analysis (3 tools)
+- [x] Crawler access analysis (3 tools: parse_robots_txt, analyze_ai_crawler_access, calculate_ai_visibility_score)
 - [ ] llms.txt validation (2 tools)
 - [ ] Content analysis (4 tools)
 
