@@ -9,7 +9,7 @@ struct ToolRegistrationTests {
     @Test("allToolHandlers returns expected count")
     func testToolCount() {
         let handlers = allToolHandlers()
-        #expect(handlers.count == 9, "Expected 9 tools, got \(handlers.count)")
+        #expect(handlers.count == 13, "Expected 13 tools, got \(handlers.count)")
     }
 
     @Test("All tool names are unique")
