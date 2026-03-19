@@ -11,12 +11,14 @@ These are pure data definitions and pure functions with no MCP protocol involvem
 
 **New Files:**
 - `Sources/GeoSEOMCP/Constants.swift` — All domain data: AI crawlers, scoring weights, content benchmarks, platform definitions, security headers, sameAs platforms
-- `Sources/GeoSEOMCP/TextAnalysis.swift` — Pure text analysis functions: syllable counting, sentence/word counting, pronoun density, definition pattern detection, statistical element counting
+- `Sources/GeoSEOMCP/TextAnalysis.swift` — Text analysis functions built on Apple's `NaturalLanguage` framework (NLTokenizer, NLTagger) for robust tokenization and part-of-speech tagging, plus custom heuristics for syllable counting, definition patterns, and statistical element detection
 
 **Modified Files:**
 - None (greenfield)
 
 **Module Placement:** Root of GeoSEOMCP library target (not in Tools/)
+
+**Key Design Decision:** Use Apple's `NaturalLanguage` framework (`import NaturalLanguage`) instead of hand-rolled tokenizers. NLTokenizer handles abbreviations, contractions, Unicode, and edge cases far better than regex splitting. NLTagger with `.lexicalClass` identifies pronouns natively instead of maintaining a pronoun word list. The only custom heuristic is syllable counting (no NL API for that), but NLTokenizer gives us clean word tokens as input.
 
 ## 3. API Surface
 
@@ -166,41 +168,72 @@ public enum CitabilityConstants {
 
 ### TextAnalysis.swift
 
+Built on Apple's `NaturalLanguage` framework for robust tokenization and POS tagging.
+
 ```swift
-/// Count syllables in a single English word.
-/// Uses a vowel-group heuristic with common adjustments.
-public func countSyllables(in word: String) -> Int
+import NaturalLanguage
 
-/// Count total syllables in a text passage.
-public func countPassageSyllables(_ text: String) -> Int
+// MARK: - NL-Powered Tokenization
 
-/// Count sentences (splits on .!? followed by whitespace or end).
-public func countSentences(in text: String) -> Int
-
-/// Count words (whitespace-separated tokens).
+/// Count words using NLTokenizer(.word). Handles contractions,
+/// abbreviations, and Unicode correctly.
 public func countWords(in text: String) -> Int
 
+/// Count sentences using NLTokenizer(.sentence). Handles abbreviations
+/// like "Dr." and "U.S." without false splits.
+public func countSentences(in text: String) -> Int
+
+/// Extract all word tokens from text using NLTokenizer(.word).
+public func tokenizeWords(_ text: String) -> [String]
+
 /// Split text into paragraphs (double-newline separated).
+/// Uses simple string splitting (NL doesn't have paragraph units).
 public func splitParagraphs(_ text: String) -> [String]
 
-/// Calculate pronoun density (pronoun count / total words).
+// MARK: - NL-Powered Part-of-Speech Analysis
+
+/// Calculate pronoun density using NLTagger(.lexicalClass).
+/// Counts tokens tagged as .pronoun / total word count.
 /// Returns 0.0 for empty text.
 public func pronounDensity(in text: String) -> Double
 
-/// Check if text contains a definition pattern ("X is ...", "X refers to ...", etc.).
+/// Count pronouns in text using NLTagger(.lexicalClass).
+public func countPronouns(in text: String) -> Int
+
+// MARK: - Syllable Counting (Custom Heuristic)
+
+/// Count syllables in a single English word.
+/// Uses a vowel-group heuristic: count vowel clusters,
+/// subtract silent-e, adjust for common patterns.
+/// NLTokenizer should be used to extract words before calling this.
+public func countSyllables(in word: String) -> Int
+
+/// Count total syllables in a text passage.
+/// Tokenizes with NLTokenizer(.word), then sums per-word syllables.
+public func countPassageSyllables(_ text: String) -> Int
+
+// MARK: - Content Pattern Detection (Regex)
+
+/// Check if text contains a definition pattern
+/// ("X is ...", "X refers to ...", "X means ...", "defined as ...").
 public func containsDefinitionPattern(_ text: String) -> Bool
 
-/// Count statistical elements (numbers with %, $, dates, named sources).
+/// Count statistical elements (percentages, currency, years, named sources).
 public func countStatisticalElements(in text: String) -> Int
+
+/// Detect if text contains list structures (bullets, numbered items).
+public func containsListStructure(_ text: String) -> Bool
+
+// MARK: - Readability Formulas
 
 /// Calculate Flesch Reading Ease score.
 /// Formula: 206.835 - 1.015(words/sentences) - 84.6(syllables/words)
-/// Returns NaN if sentences or words is zero.
+/// Returns .nan if sentences or words is zero.
 public func fleschReadingEase(totalWords: Int, totalSentences: Int, totalSyllables: Int) -> Double
 
 /// Calculate Flesch-Kincaid Grade Level.
 /// Formula: 0.39(words/sentences) + 11.8(syllables/words) - 15.59
-/// Returns NaN if sentences or words is zero.
+/// Returns .nan if sentences or words is zero.
 public func fleschKincaidGradeLevel(totalWords: Int, totalSentences: Int, totalSyllables: Int) -> Double
 ```
 
@@ -213,17 +246,24 @@ Not applicable — these are internal types and functions, not MCP tools. They w
 - **Concurrency:** All types are Sendable (structs, enums with Sendable conformance)
 - **Generics:** Not applicable (text analysis operates on String/Int/Double, not generic Real)
 - **Safety:** No force unwraps. Division safety in Flesch formulas (return NaN for zero denominators). Guard clauses for empty inputs.
-- **Iteration limits:** Syllable counting iterates over characters in a word (bounded by word length). No unbounded loops.
-- **Determinism:** All functions are pure and deterministic.
+- **Iteration limits:** Syllable counting iterates over characters in a word (bounded by word length). NLTokenizer/NLTagger iterate over tokens (bounded by text length). No unbounded loops.
+- **Determinism:** All functions are pure and deterministic. NLTokenizer and NLTagger produce deterministic results for the same input.
 
 ## 6. Backend Abstraction
 
-Not applicable — text analysis is lightweight CPU-only computation.
+Not applicable — text analysis is lightweight CPU-only computation. NaturalLanguage framework uses Accelerate internally where appropriate.
 
 ## 7. Dependencies
 
 **Internal Dependencies:** None (foundation layer)
-**External Dependencies:** Foundation (for regex/string processing)
+**External Dependencies:**
+- `Foundation` — regex, string processing
+- `NaturalLanguage` — NLTokenizer (word/sentence tokenization), NLTagger (part-of-speech tagging). Apple system framework, available on macOS 10.14+. No package dependency needed.
+
+**Platform Note:** NaturalLanguage is macOS-only (not available on Linux). This is acceptable because:
+1. The project targets macOS 14+ (`platforms: [.macOS(.v14)]`)
+2. The production server (roseclub.org) runs macOS
+3. If Linux support is ever needed, we can add a `#if canImport(NaturalLanguage)` fallback with regex-based tokenization
 
 ## 8. Test Strategy
 
@@ -240,9 +280,10 @@ Not applicable — text analysis is lightweight CPU-only computation.
 
 **Reference Truth:** Manual phonetic analysis confirmed against Merriam-Webster syllable counts.
 
-### Sentence Counting
+### Sentence Counting (NLTokenizer)
 - Golden path: "Hello. World! Really?" → 3
-- Abbreviations: "Dr. Smith went home." → 1 (known limitation: abbreviation periods)
+- Abbreviations: "Dr. Smith went home." → 1 (NLTokenizer handles this correctly)
+- Multi-sentence: "The U.S. economy grew. Exports increased." → 2
 - Edge: empty string → 0, no punctuation → 1 (treat as one sentence)
 
 ### Word Counting
@@ -250,9 +291,10 @@ Not applicable — text analysis is lightweight CPU-only computation.
 - Multiple spaces: "hello  world" → 2
 - Edge: empty string → 0, single word → 1
 
-### Pronoun Density
-- Golden path: "I went to my house" → 2/5 = 0.4
+### Pronoun Density (NLTagger)
+- Golden path: "I went to my house" → NLTagger identifies "I" and "my" as pronouns → 2/5 = 0.4
 - No pronouns: "The cat sat on the mat" → 0.0
+- Mixed: "She said the results were promising" → "She" tagged as pronoun → 1/6
 - Edge: empty string → 0.0
 
 ### Definition Patterns

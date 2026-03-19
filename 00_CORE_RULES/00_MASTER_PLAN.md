@@ -80,15 +80,15 @@ GeoSEOMCP/
 - [x] main.swift with builder pattern
 - [x] Test helpers adapted from BusinessMathMCP
 - [x] Development guidelines installed
-- [ ] Constants.swift — domain data
-- [ ] TextAnalysis.swift — text utility functions
+- [x] Constants.swift — domain data (14 crawlers, weights, benchmarks, platforms)
+- [x] TextAnalysis.swift — NL-powered text analysis (59 tests passing)
 - [ ] Tool categories 1-10 (29 tools)
 
 ### Known Issues
 - None (greenfield project)
 
 ### Current Priorities
-1. Constants & TextAnalysis foundation with TDD
+1. ~~Constants & TextAnalysis foundation with TDD~~ DONE
 2. Utility tools (count_syllables, calculate_pronoun_density)
 3. Citability scoring tools
 4. Crawler access tools
@@ -141,8 +141,8 @@ GeoSEOMCP/
 
 ### Phase 1: Foundation & Utility (Steps 0-2)
 - [x] Project bootstrap
-- [ ] Constants.swift (crawlers, weights, benchmarks)
-- [ ] TextAnalysis.swift (syllable counting, text stats)
+- [x] Constants.swift (crawlers, weights, benchmarks)
+- [x] TextAnalysis.swift (syllable counting, text stats)
 - [ ] Utility tools (2 tools)
 
 ### Phase 2: Core Analysis (Steps 3-6)
