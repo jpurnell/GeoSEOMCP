@@ -10,5 +10,6 @@ public func allToolHandlers() -> [any MCPToolHandler] {
     handlers += getLlmsTxtTools()
     handlers += getContentAnalysisTools()
     handlers += getSchemaTools()
+    handlers += getTechnicalSEOTools()
     return handlers
 }
