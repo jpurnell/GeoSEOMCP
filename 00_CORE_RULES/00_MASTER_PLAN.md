@@ -148,17 +148,17 @@ GeoSEOMCP/
 ### Phase 2: Core Analysis (Steps 3-6)
 - [x] Citability scoring (2 tools: score_passage_citability, analyze_page_citability)
 - [x] Crawler access analysis (3 tools: parse_robots_txt, analyze_ai_crawler_access, calculate_ai_visibility_score)
-- [ ] llms.txt validation (2 tools)
-- [ ] Content analysis (4 tools)
+- [x] llms.txt validation (2 tools: validate_llmstxt, categorize_urls_for_llmstxt)
+- [x] Content analysis (4 tools: calculate_flesch_readability, analyze_content_statistics, calculate_eeat_score, check_content_benchmarks)
 
 ### Phase 3: Structured Data & Technical (Steps 7-8)
-- [ ] Schema validation & generation (4 tools)
-- [ ] Technical SEO scoring (5 tools)
+- [x] Schema validation & generation (4 tools: validate_json_ld, audit_sameas_coverage, score_schema_completeness, generate_schema_template)
+- [x] Technical SEO scoring (5 tools: analyze_security_headers, analyze_heading_structure, audit_meta_tags, detect_ssr_capability, score_technical_seo)
 
 ### Phase 4: Platform & Composite (Steps 9-10)
-- [ ] Brand authority scoring (3 tools)
-- [ ] Platform readiness (1 tool)
-- [ ] Composite scoring & classification (3 tools)
+- [x] Brand authority scoring (3 tools: calculate_brand_authority_score, score_platform_presence, generate_platform_search_urls)
+- [x] Platform readiness (1 tool: score_platform_readiness)
+- [x] Composite scoring & classification (3 tools: calculate_geo_composite_score, classify_audit_findings, detect_business_type)
 
 ### Phase 5: Polish & Deploy (Steps 11-12)
 - [ ] Resources & Prompts

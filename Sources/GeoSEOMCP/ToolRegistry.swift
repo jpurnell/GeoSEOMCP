@@ -12,5 +12,6 @@ public func allToolHandlers() -> [any MCPToolHandler] {
     handlers += getSchemaTools()
     handlers += getTechnicalSEOTools()
     handlers += getBrandPlatformTools()
+    handlers += getCompositeTools()
     return handlers
 }
