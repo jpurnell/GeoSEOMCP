@@ -5,5 +5,6 @@ import SwiftMCPServer
 public func allToolHandlers() -> [any MCPToolHandler] {
     var handlers: [any MCPToolHandler] = []
     handlers += getUtilityTools()
+    handlers += getCitabilityTools()
     return handlers
 }

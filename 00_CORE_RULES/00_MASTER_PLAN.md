@@ -146,7 +146,7 @@ GeoSEOMCP/
 - [x] Utility tools (2 tools: count_syllables, calculate_pronoun_density)
 
 ### Phase 2: Core Analysis (Steps 3-6)
-- [ ] Citability scoring (2 tools)
+- [x] Citability scoring (2 tools: score_passage_citability, analyze_page_citability)
 - [ ] Crawler access analysis (3 tools)
 - [ ] llms.txt validation (2 tools)
 - [ ] Content analysis (4 tools)
