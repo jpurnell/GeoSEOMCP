@@ -161,9 +161,9 @@ GeoSEOMCP/
 - [x] Composite scoring & classification (3 tools: calculate_geo_composite_score, classify_audit_findings, detect_business_type)
 
 ### Phase 5: Polish & Deploy (Steps 11-12)
-- [ ] Resources & Prompts
-- [ ] Deployment to roseclub.org:8081
-- [ ] End-to-end validation
+- [x] Resources & Prompts (16 resources, 5 prompts)
+- [x] Deployment to roseclub.org:8081
+- [x] End-to-end validation
 
 ### Future Considerations
 - HTML parsing tools (SwiftSoup dependency)
@@ -173,4 +173,4 @@ GeoSEOMCP/
 
 ---
 
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-20
