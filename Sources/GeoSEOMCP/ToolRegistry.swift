@@ -9,5 +9,6 @@ public func allToolHandlers() -> [any MCPToolHandler] {
     handlers += getCrawlerAccessTools()
     handlers += getLlmsTxtTools()
     handlers += getContentAnalysisTools()
+    handlers += getSchemaTools()
     return handlers
 }
