@@ -12,8 +12,18 @@ extension MCPToolCallResult {
         return result.isError ?? false
     }
 
-    /// Extract the text content from the first content block
+    /// Extract the rich text content from the result.
+    ///
+    /// For structured results (two content blocks), returns the second block (rich text).
+    /// For legacy single-block results, returns the first block.
     var text: String {
+        // Structured results: [json, richText] — return richText
+        if result.content.count >= 2 {
+            if case .text(let string) = result.content[1] {
+                return string
+            }
+        }
+        // Legacy or single-block: return first
         guard let firstContent = result.content.first else {
             return ""
         }
@@ -25,6 +35,15 @@ extension MCPToolCallResult {
         @unknown default:
             return ""
         }
+    }
+
+    /// Extract the structured JSON string from the first content block.
+    var jsonText: String? {
+        guard result.content.count >= 2,
+              case .text(let string) = result.content.first else {
+            return nil
+        }
+        return string
     }
 }
 

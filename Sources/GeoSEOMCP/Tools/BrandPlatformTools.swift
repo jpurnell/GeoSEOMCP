@@ -73,7 +73,20 @@ public struct CalculateBrandAuthorityScoreTool: MCPToolHandler, Sendable {
           Other Platforms (15%):  \(String(format: "%.0f", other))
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "calculate_brand_authority_score",
+            resultType: .scored,
+            score: ScorePayload(value: composite, maximum: 100, grade: nil),
+            data: [
+                "youtube": .number(youtube),
+                "reddit": .number(reddit),
+                "wikipedia": .number(wikipedia),
+                "linkedin": .number(linkedin),
+                "otherPlatforms": .number(other),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -115,14 +128,27 @@ public struct ScorePlatformPresenceTool: MCPToolHandler, Sendable {
         let hasPresence = try args.getBool("has_presence")
 
         guard hasPresence else {
-            return .success(text: """
+            let noPresenceText = """
             Platform Presence: \(platform)
 
             Status: No presence detected
             Score: 0 / 100
 
             Recommendation: Establish a presence on \(platform) to improve brand authority.
-            """)
+            """
+            let noPresenceResult = GeoSEOResult(
+                tool: "score_platform_presence",
+                resultType: .scored,
+                score: ScorePayload(value: 0, maximum: 100, grade: nil),
+                data: [
+                    "platform": .string(platform),
+                    "hasPresence": .bool(false),
+                    "followers": .number(0),
+                    "engagementRate": .number(0),
+                    "postFrequency": .string("none"),
+                ]
+            )
+            return .structured(json: noPresenceResult, text: noPresenceText)
         }
 
         let followers = args.getDoubleOptional("follower_count") ?? 0
@@ -167,7 +193,20 @@ public struct ScorePlatformPresenceTool: MCPToolHandler, Sendable {
           Post Frequency: \(frequency)
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "score_platform_presence",
+            resultType: .scored,
+            score: ScorePayload(value: score, maximum: 100, grade: nil),
+            data: [
+                "platform": .string(platform),
+                "hasPresence": .bool(true),
+                "followers": .number(followers),
+                "engagementRate": .number(engagement),
+                "postFrequency": .string(frequency),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -218,7 +257,16 @@ public struct GeneratePlatformSearchUrlsTool: MCPToolHandler, Sendable {
         Use these URLs to verify brand presence on each platform.
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "generate_platform_search_urls",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "brandName": .string(brand),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -296,6 +344,17 @@ public struct ScorePlatformReadinessTool: MCPToolHandler, Sendable {
           "Low readiness — significant work needed for \(platformName) optimization.")
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "score_platform_readiness",
+            resultType: .scored,
+            score: ScorePayload(value: score, maximum: 100, grade: nil),
+            data: [
+                "platform": .string(platform),
+                "itemsPassed": .integer(passed),
+                "totalItems": .integer(total),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }

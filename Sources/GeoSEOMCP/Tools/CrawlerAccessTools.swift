@@ -232,7 +232,17 @@ public struct ParseRobotsTxtTool: MCPToolHandler, Sendable {
         let rules = parseRobotsTxt(content)
 
         if rules.isEmpty {
-            return .success(text: "Robots.txt Parsing Result\n\nNo rules found. All crawlers are allowed by default.")
+            let emptyText = "Robots.txt Parsing Result\n\nNo rules found. All crawlers are allowed by default."
+            let emptyResult = GeoSEOResult(
+                tool: "parse_robots_txt",
+                resultType: .analysis,
+                score: nil,
+                data: [
+                    "userAgentCount": .integer(0),
+                    "userAgents": .array([]),
+                ]
+            )
+            return .structured(json: emptyResult, text: emptyText)
         }
 
         var output = "Robots.txt Parsing Result\n\nUser-Agent Groups: \(rules.count)\n"
@@ -244,7 +254,17 @@ public struct ParseRobotsTxtTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "parse_robots_txt",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "userAgentCount": .integer(rules.count),
+                "userAgents": .array(rules.keys.sorted().map { .string($0) }),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -301,9 +321,31 @@ public struct AnalyzeAICrawlerAccessTool: MCPToolHandler, Sendable {
 
         let totalAllowed = access.filter { $0.status == .allowed }.count
         let totalBlocked = access.filter { $0.status == .blocked }.count
+        let totalPartial = access.filter { $0.status == .partiallyRestricted }.count
         output += "\n\nSummary: \(totalAllowed)/14 allowed, \(totalBlocked)/14 blocked"
 
-        return .success(text: output)
+        let crawlersJSON: [JSONValue] = access.map { crawler in
+            .object([
+                "name": .string(crawler.crawlerName),
+                "userAgent": .string(crawler.userAgent),
+                "status": .string(crawler.status.rawValue),
+                "tier": .integer(crawler.tier.rawValue),
+            ])
+        }
+
+        let result = GeoSEOResult(
+            tool: "analyze_ai_crawler_access",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "totalAllowed": .integer(totalAllowed),
+                "totalBlocked": .integer(totalBlocked),
+                "totalPartial": .integer(totalPartial),
+                "crawlers": .array(crawlersJSON),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -376,6 +418,18 @@ public struct CalculateAIVisibilityScoreTool: MCPToolHandler, Sendable {
           "Poor AI visibility — most AI crawlers are blocked.")
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "calculate_ai_visibility_score",
+            resultType: .scored,
+            score: ScorePayload(value: score, maximum: 100, grade: nil),
+            data: [
+                "tier1Allowed": .integer(tier1Allowed),
+                "tier2Allowed": .integer(tier2Allowed),
+                "hasLlmsTxt": .bool(hasLlmsTxt),
+                "hasAiTxt": .bool(hasAiTxt),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }

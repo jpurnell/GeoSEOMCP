@@ -195,7 +195,19 @@ public struct ValidateLlmsTxtTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let jsonResult = GeoSEOResult(
+            tool: "validate_llmstxt",
+            resultType: .analysis,
+            data: [
+                "isValid": .bool(result.isValid),
+                "hasTitle": .bool(result.hasTitle),
+                "hasDescription": .bool(result.hasDescription),
+                "sectionCount": .integer(result.sectionCount),
+                "linkCount": .integer(result.linkCount),
+                "issues": .array(result.issues.map { .string($0) }),
+            ]
+        )
+        return .structured(json: jsonResult, text: output)
     }
 }
 
@@ -240,7 +252,14 @@ public struct CategorizeUrlsForLlmsTxtTool: MCPToolHandler, Sendable {
         let categories = categorizeUrlsForLlmsTxt(urls)
 
         if categories.isEmpty {
-            return .success(text: "URL Categorization\n\nNo URLs provided.")
+            let emptyResult = GeoSEOResult(
+                tool: "categorize_urls_for_llmstxt",
+                resultType: .analysis,
+                data: [
+                    "urlCount": .integer(0),
+                ]
+            )
+            return .structured(json: emptyResult, text: "URL Categorization\n\nNo URLs provided.")
         }
 
         // Group by suggested section
@@ -258,6 +277,13 @@ public struct CategorizeUrlsForLlmsTxtTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let jsonResult = GeoSEOResult(
+            tool: "categorize_urls_for_llmstxt",
+            resultType: .analysis,
+            data: [
+                "urlCount": .integer(urls.count),
+            ]
+        )
+        return .structured(json: jsonResult, text: output)
     }
 }

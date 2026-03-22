@@ -270,7 +270,22 @@ public struct ScorePassageCitabilityTool: MCPToolHandler, Sendable {
         \(recommendations.isEmpty ? "" : "\nRecommendations:\n" + recommendations.map { "  • \($0)" }.joined(separator: "\n"))
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "score_passage_citability",
+            resultType: .scored,
+            score: ScorePayload(value: score.composite, maximum: 100, grade: score.grade),
+            data: [
+                "answerBlockQuality": .number(score.answerBlockQuality),
+                "selfContainment": .number(score.selfContainment),
+                "structuralReadability": .number(score.structuralReadability),
+                "statisticalDensity": .number(score.statisticalDensity),
+                "uniquenessSignals": .number(score.uniquenessSignals),
+                "wordCount": .integer(score.wordCount),
+                "recommendations": .array(recommendations.map { .string($0) }),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -384,6 +399,35 @@ public struct AnalyzePageCitabilityTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        var topPassagesArray: [JSONValue] = []
+        for (index, element) in ranked {
+            let preview = String(passages[index].prefix(80))
+                .replacingOccurrences(of: "\n", with: " ")
+            topPassagesArray.append(.object([
+                "index": .integer(index + 1),
+                "score": .number(element.composite),
+                "grade": .string(element.grade),
+                "preview": .string(preview),
+            ]))
+        }
+
+        var gradeDistributionJSON: [String: JSONValue] = [:]
+        for (key, value) in gradeDistribution {
+            gradeDistributionJSON[key] = .integer(value)
+        }
+
+        let result = GeoSEOResult(
+            tool: "analyze_page_citability",
+            resultType: .scored,
+            score: ScorePayload(value: avgScore, maximum: 100, grade: overallGrade),
+            data: [
+                "passageCount": .integer(scores.count),
+                "bestPassageScore": .number(bestScore?.composite ?? 0),
+                "gradeDistribution": .object(gradeDistributionJSON),
+                "topPassages": .array(topPassagesArray),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }

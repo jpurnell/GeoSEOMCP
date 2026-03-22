@@ -98,7 +98,20 @@ public struct CalculateFleschReadabilityTool: MCPToolHandler, Sendable {
         Interpretation: \(interpretation)
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "calculate_flesch_readability",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "readingEase": .number(readingEase.isNaN ? 0.0 : readingEase),
+                "gradeLevel": .number(gradeLevel.isNaN ? 0.0 : gradeLevel),
+                "wordCount": .integer(wordCount),
+                "sentenceCount": .integer(sentenceCount),
+                "syllableCount": .integer(syllableCount),
+                "interpretation": .string(interpretation),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -172,7 +185,22 @@ public struct AnalyzeContentStatisticsTool: MCPToolHandler, Sendable {
           Contains List Structure: \(hasLists ? "Yes" : "No")
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "analyze_content_statistics",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "wordCount": .integer(wordCount),
+                "sentenceCount": .integer(sentenceCount),
+                "paragraphCount": .integer(paragraphs.count),
+                "syllableCount": .integer(syllableCount),
+                "statisticalElements": .integer(statElements),
+                "pronounDensity": .number(density),
+                "hasDefinitions": .bool(hasDefinitions),
+                "hasLists": .bool(hasLists),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -258,7 +286,20 @@ public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
         Assessment: \(grade)
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "calculate_eeat_score",
+            resultType: .scored,
+            score: ScorePayload(value: finalScore, maximum: 110, grade: grade),
+            data: [
+                "experience": .number(experience),
+                "expertise": .number(expertise),
+                "authoritativeness": .number(authoritativeness),
+                "trustworthiness": .number(trustworthiness),
+                "modifier": .number(modifier),
+                "baseScore": .number(baseScore),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -368,6 +409,19 @@ public struct CheckContentBenchmarksTool: MCPToolHandler, Sendable {
             for issue in issues { output += "\n  ✗ \(issue)" }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "check_content_benchmarks",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "pageType": .string(pageType),
+                "wordCount": .integer(wordCount),
+                "readingEase": .number(readingEase.isNaN ? 0.0 : readingEase),
+                "status": .string(status),
+                "issues": .array(issues.map { .string($0) }),
+                "passes": .array(passes.map { .string($0) }),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }

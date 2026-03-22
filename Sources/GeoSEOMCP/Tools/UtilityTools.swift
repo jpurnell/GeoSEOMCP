@@ -69,7 +69,16 @@ public struct CountSyllablesTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "count_syllables",
+            resultType: .analysis,
+            data: [
+                "totalSyllables": .integer(totalSyllables),
+                "wordCount": .integer(wordCount),
+                "avgSyllablesPerWord": .number(avgSyllables),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -143,6 +152,16 @@ public struct CalculatePronounDensityTool: MCPToolHandler, Sendable {
         Impact: \(impact)
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "calculate_pronoun_density",
+            resultType: .analysis,
+            data: [
+                "pronounCount": .integer(pronounCount),
+                "wordCount": .integer(wordCount),
+                "density": .number(density),
+                "assessment": .string(assessment),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }

@@ -50,12 +50,25 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
         guard let data = jsonString.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
-            return .success(text: """
+            let earlyOutput = """
             JSON-LD Validation
 
             Status: INVALID
             Error: Invalid JSON syntax — could not parse the provided content.
-            """)
+            """
+            let earlyResult = GeoSEOResult(
+                tool: "validate_json_ld",
+                resultType: .analysis,
+                score: nil,
+                data: [
+                    "status": .string("INVALID"),
+                    "schemaType": .string("Unknown"),
+                    "propertyCount": .integer(0),
+                    "issues": .array([.string("Invalid JSON syntax — could not parse the provided content.")]),
+                    "findings": .array([]),
+                ]
+            )
+            return .structured(json: earlyResult, text: earlyOutput)
         }
 
         var issues: [String] = []
@@ -128,7 +141,19 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
             for issue in issues { output += "\n  ✗ \(issue)" }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "validate_json_ld",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "status": .string(status),
+                "schemaType": .string(schemaType),
+                "propertyCount": .integer(propertyCount),
+                "issues": .array(issues.map { .string($0) }),
+                "findings": .array(findings.map { .string($0) }),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -206,7 +231,20 @@ public struct AuditSameAsCoverageTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "audit_sameas_coverage",
+            resultType: .scored,
+            score: ScorePayload(value: percentage, maximum: 100, grade: nil),
+            data: [
+                "totalPoints": .number(totalPoints),
+                "maxPoints": .integer(15),
+                "platformsCovered": .integer(covered.count),
+                "totalPlatforms": .integer(SameAsPlatforms.all.count),
+                "covered": .array(covered.map { .string($0.0) }),
+                "missing": .array(missing.map { .string($0.0) }),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -307,7 +345,17 @@ public struct ScoreSchemaCompletenessTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "score_schema_completeness",
+            resultType: .scored,
+            score: ScorePayload(value: score, maximum: 100, grade: nil),
+            data: [
+                "typesFound": .integer(types.count),
+                "implemented": .array(found.map { .string($0.0) }),
+                "missing": .array(missing.map { .string($0.0) }),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -477,15 +525,24 @@ public struct GenerateSchemaTemplateTool: MCPToolHandler, Sendable {
             """
         default:
             let validTypes = "organization, local-business, article, product, software, website"
-            return .success(text: """
+            let earlyOutput = """
             Schema Template Generator
 
             Unknown business type: \(businessType)
             Available types: \(validTypes)
-            """)
+            """
+            let earlyResult = GeoSEOResult(
+                tool: "generate_schema_template",
+                resultType: .analysis,
+                score: nil,
+                data: [
+                    "businessType": .string(businessType),
+                ]
+            )
+            return .structured(json: earlyResult, text: earlyOutput)
         }
 
-        return .success(text: """
+        let mainOutput = """
         Schema Template: \(businessType)
 
         ```json
@@ -493,6 +550,15 @@ public struct GenerateSchemaTemplateTool: MCPToolHandler, Sendable {
         ```
 
         Replace all [placeholder] values with your actual data.
-        """)
+        """
+        let mainResult = GeoSEOResult(
+            tool: "generate_schema_template",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "businessType": .string(businessType),
+            ]
+        )
+        return .structured(json: mainResult, text: mainOutput)
     }
 }

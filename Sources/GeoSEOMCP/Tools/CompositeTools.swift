@@ -86,7 +86,20 @@ public struct CalculateGEOCompositeScoreTool: MCPToolHandler, Sendable {
           Platform Readiness (10%): \(String(format: "%.1f", platform))
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "calculate_geo_composite_score",
+            resultType: .scored,
+            score: ScorePayload(value: composite, maximum: 100, grade: grade),
+            data: [
+                "citability": .number(citability),
+                "brandAuthority": .number(brand),
+                "eeat": .number(eeat),
+                "technical": .number(technical),
+                "schema": .number(schema),
+                "platform": .number(platform),
+            ]
+        )
+        return .structured(json: result, text: output)
     }
 }
 
@@ -184,7 +197,18 @@ public struct ClassifyAuditFindingsTool: MCPToolHandler, Sendable {
             output += "\n  Current: \(String(format: "%.0f", finding.currentScore)) → Target: \(String(format: "%.0f", finding.targetScore)) (gap: \(String(format: "%.0f", finding.gap)))"
         }
 
-        return .success(text: output)
+        let jsonResult = GeoSEOResult(
+            tool: "classify_audit_findings",
+            resultType: .analysis,
+            data: [
+                "totalFindings": .integer(findings.count),
+                "critical": .integer(critical.count),
+                "high": .integer(high.count),
+                "medium": .integer(medium.count),
+                "low": .integer(low.count),
+            ]
+        )
+        return .structured(json: jsonResult, text: output)
     }
 }
 
@@ -273,6 +297,15 @@ public struct DetectBusinessTypeTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let jsonResult = GeoSEOResult(
+            tool: "detect_business_type",
+            resultType: .analysis,
+            data: [
+                "detectedType": .string(detected?.0 ?? "Unknown"),
+                "confidence": .string(confidence),
+                "signalsAnalyzed": .integer(signals.count),
+            ]
+        )
+        return .structured(json: jsonResult, text: output)
     }
 }

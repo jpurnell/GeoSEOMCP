@@ -94,7 +94,19 @@ public struct AnalyzeSecurityHeadersTool: MCPToolHandler, Sendable {
             }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "analyze_security_headers",
+            resultType: .scored,
+            score: ScorePayload(value: totalScore, maximum: 100, grade: nil),
+            data: [
+                "headersFound": .integer(found.count),
+                "totalHeaders": .integer(SecurityHeaders.all.count),
+                "present": .array(found.map { .string($0.0) }),
+                "missing": .array(missing.map { .string($0.0) }),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -212,7 +224,27 @@ public struct AnalyzeHeadingStructureTool: MCPToolHandler, Sendable {
             for issue in issues { output += "\n  ✗ \(issue)" }
         }
 
-        return .success(text: output)
+        var distributionJSON: [String: JSONValue] = [:]
+        for level in 1...6 {
+            let count = distribution[level] ?? 0
+            if count > 0 {
+                distributionJSON["h\(level)"] = .integer(count)
+            }
+        }
+
+        let result = GeoSEOResult(
+            tool: "analyze_heading_structure",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "isValid": .bool(isValid),
+                "totalHeadings": .integer(headings.count),
+                "issues": .array(issues.map { .string($0) }),
+                "distribution": .object(distributionJSON),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -325,7 +357,18 @@ public struct AuditMetaTagsTool: MCPToolHandler, Sendable {
             for issue in issues { output += "\n  ✗ \(issue)" }
         }
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "audit_meta_tags",
+            resultType: .analysis,
+            score: nil,
+            data: [
+                "titleLength": .integer(title.count),
+                "issues": .array(issues.map { .string($0) }),
+                "passes": .array(passes.map { .string($0) }),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -423,7 +466,17 @@ public struct DetectSSRCapabilityTool: MCPToolHandler, Sendable {
         AI Crawler Impact: \(impact)
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "detect_ssr_capability",
+            resultType: .scored,
+            score: ScorePayload(value: score, maximum: 100, grade: nil),
+            data: [
+                "classification": .string(classification),
+                "signals": .array(signals.map { .string($0) }),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
 
@@ -506,6 +559,24 @@ public struct ScoreTechnicalSEOTool: MCPToolHandler, Sendable {
           Server Response (5%):     \(String(format: "%.0f", server))
         """
 
-        return .success(text: output)
+        let result = GeoSEOResult(
+            tool: "score_technical_seo",
+            resultType: .scored,
+            score: ScorePayload(value: composite, maximum: 100, grade: nil),
+            data: [
+                "components": .object([
+                    "ssr": .number(ssr),
+                    "metaTags": .number(meta),
+                    "crawlability": .number(crawl),
+                    "security": .number(security),
+                    "coreWebVitals": .number(cwv),
+                    "mobile": .number(mobile),
+                    "urlStructure": .number(url),
+                    "serverResponse": .number(server),
+                ]),
+            ]
+        )
+
+        return .structured(json: result, text: output)
     }
 }
