@@ -1,14 +1,18 @@
 import Foundation
+#if canImport(NaturalLanguage)
 import NaturalLanguage
+#endif
 
 // MARK: - NL-Powered Tokenization
 
-/// Count words using NLTokenizer(.word).
+/// Count words using NLTokenizer(.word) on Apple platforms,
+/// or regex-based splitting on Linux.
 /// Handles contractions, abbreviations, and Unicode correctly.
 /// - Parameter text: The text to count words in.
 /// - Returns: Number of words, or 0 for empty text.
 public func countWords(in text: String) -> Int {
     guard !text.isEmpty else { return 0 }
+    #if canImport(NaturalLanguage)
     let tokenizer = NLTokenizer(unit: .word)
     tokenizer.string = text
     var count = 0
@@ -17,14 +21,19 @@ public func countWords(in text: String) -> Int {
         return true
     }
     return count
+    #else
+    return tokenizeWords(text).count
+    #endif
 }
 
-/// Count sentences using NLTokenizer(.sentence).
+/// Count sentences using NLTokenizer(.sentence) on Apple platforms,
+/// or punctuation-based splitting on Linux.
 /// Handles abbreviations like "Dr." and "U.S." without false splits.
 /// - Parameter text: The text to count sentences in.
 /// - Returns: Number of sentences, or 0 for empty text.
 public func countSentences(in text: String) -> Int {
     guard !text.isEmpty else { return 0 }
+    #if canImport(NaturalLanguage)
     let tokenizer = NLTokenizer(unit: .sentence)
     tokenizer.string = text
     var count = 0
@@ -33,13 +42,27 @@ public func countSentences(in text: String) -> Int {
         return true
     }
     return count
+    #else
+    // Simple sentence splitting: split on sentence-ending punctuation followed by space or end
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return 0 }
+    let pattern = #"[.!?]+[\s]+|[.!?]+$"#
+    if let regex = try? NSRegularExpression(pattern: pattern) {
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        let count = regex.numberOfMatches(in: trimmed, range: range)
+        return max(count, 1)
+    }
+    return 1
+    #endif
 }
 
-/// Extract all word tokens from text using NLTokenizer(.word).
+/// Extract all word tokens from text using NLTokenizer(.word) on Apple platforms,
+/// or regex-based splitting on Linux.
 /// - Parameter text: The text to tokenize.
 /// - Returns: Array of word strings.
 public func tokenizeWords(_ text: String) -> [String] {
     guard !text.isEmpty else { return [] }
+    #if canImport(NaturalLanguage)
     let tokenizer = NLTokenizer(unit: .word)
     tokenizer.string = text
     var tokens: [String] = []
@@ -48,6 +71,19 @@ public func tokenizeWords(_ text: String) -> [String] {
         return true
     }
     return tokens
+    #else
+    // Split on whitespace and punctuation boundaries, keeping word characters
+    let pattern = #"[\w']+"#
+    guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+    let range = NSRange(text.startIndex..., in: text)
+    let matches = regex.matches(in: text, range: range)
+    return matches.compactMap { match in
+        guard let swiftRange = Range(match.range, in: text) else { return nil }
+        let token = String(text[swiftRange])
+        // Filter out standalone apostrophes
+        return token == "'" ? nil : token
+    }
+    #endif
 }
 
 /// Split text into paragraphs (double-newline separated).
@@ -62,11 +98,13 @@ public func splitParagraphs(_ text: String) -> [String] {
 
 // MARK: - NL-Powered Part-of-Speech Analysis
 
-/// Count pronouns in text using NLTagger(.lexicalClass).
+/// Count pronouns in text using NLTagger(.lexicalClass) on Apple platforms,
+/// or a word-list approach on Linux.
 /// - Parameter text: The text to analyze.
 /// - Returns: Number of pronoun tokens.
 public func countPronouns(in text: String) -> Int {
     guard !text.isEmpty else { return 0 }
+    #if canImport(NaturalLanguage)
     let tagger = NLTagger(tagSchemes: [.lexicalClass])
     tagger.string = text
     var count = 0
@@ -82,9 +120,28 @@ public func countPronouns(in text: String) -> Int {
         return true
     }
     return count
+    #else
+    let pronounList: Set<String> = [
+        "i", "me", "my", "mine", "myself",
+        "you", "your", "yours", "yourself", "yourselves",
+        "he", "him", "his", "himself",
+        "she", "her", "hers", "herself",
+        "it", "its", "itself",
+        "we", "us", "our", "ours", "ourselves",
+        "they", "them", "their", "theirs", "themselves",
+        "this", "that", "these", "those",
+        "who", "whom", "whose", "which", "what",
+        "whoever", "whomever", "whatever", "whichever",
+        "anyone", "everyone", "someone", "nobody",
+        "anything", "everything", "something", "nothing",
+    ]
+    let words = tokenizeWords(text)
+    return words.filter { pronounList.contains($0.lowercased()) }.count
+    #endif
 }
 
-/// Calculate pronoun density using NLTagger(.lexicalClass).
+/// Calculate pronoun density using NLTagger(.lexicalClass) on Apple platforms,
+/// or a word-list approach on Linux.
 /// - Parameter text: The text to analyze.
 /// - Returns: Ratio of pronoun count to total word count, or 0.0 for empty text.
 public func pronounDensity(in text: String) -> Double {
