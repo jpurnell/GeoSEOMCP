@@ -14,6 +14,7 @@ public func getCompositeTools() -> [any MCPToolHandler] {
 
 /// Calculate the overall GEO composite score from all category scores.
 public struct CalculateGEOCompositeScoreTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "calculate_geo_composite_score",
         description: """
@@ -43,8 +44,10 @@ public struct CalculateGEOCompositeScoreTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("citability_score")
@@ -74,16 +77,16 @@ public struct CalculateGEOCompositeScoreTool: MCPToolHandler, Sendable {
         let output = """
         GEO Composite Score
 
-        Overall Score: \(String(format: "%.1f", composite)) / 100
+        Overall Score: \(composite.formatted(.number.precision(.fractionLength(1)))) / 100
         Grade: \(grade)
 
         Category Breakdown:
-          Citability (25%):        \(String(format: "%.1f", citability))
-          Brand Authority (20%):   \(String(format: "%.1f", brand))
-          E-E-A-T (20%):           \(String(format: "%.1f", eeat))
-          Technical SEO (15%):     \(String(format: "%.1f", technical))
-          Schema (10%):            \(String(format: "%.1f", schema))
-          Platform Readiness (10%): \(String(format: "%.1f", platform))
+          Citability (25%):        \(citability.formatted(.number.precision(.fractionLength(1))))
+          Brand Authority (20%):   \(brand.formatted(.number.precision(.fractionLength(1))))
+          E-E-A-T (20%):           \(eeat.formatted(.number.precision(.fractionLength(1))))
+          Technical SEO (15%):     \(technical.formatted(.number.precision(.fractionLength(1))))
+          Schema (10%):            \(schema.formatted(.number.precision(.fractionLength(1))))
+          Platform Readiness (10%): \(platform.formatted(.number.precision(.fractionLength(1))))
         """
 
         let result = GeoSEOResult(
@@ -107,6 +110,7 @@ public struct CalculateGEOCompositeScoreTool: MCPToolHandler, Sendable {
 
 /// Classify audit findings by priority based on score gaps.
 public struct ClassifyAuditFindingsTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "classify_audit_findings",
         description: """
@@ -132,8 +136,10 @@ public struct ClassifyAuditFindingsTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("findings")
@@ -194,7 +200,7 @@ public struct ClassifyAuditFindingsTool: MCPToolHandler, Sendable {
 
         for finding in findings {
             output += "\n\n[\(finding.priority.uppercased())] \(finding.area)"
-            output += "\n  Current: \(String(format: "%.0f", finding.currentScore)) → Target: \(String(format: "%.0f", finding.targetScore)) (gap: \(String(format: "%.0f", finding.gap)))"
+            output += "\n  Current: \(finding.currentScore.formatted(.number.precision(.fractionLength(0)))) → Target: \(finding.targetScore.formatted(.number.precision(.fractionLength(0)))) (gap: \(finding.gap.formatted(.number.precision(.fractionLength(0)))))"
         }
 
         let jsonResult = GeoSEOResult(
@@ -216,6 +222,7 @@ public struct ClassifyAuditFindingsTool: MCPToolHandler, Sendable {
 
 /// Detect business type from page signals.
 public struct DetectBusinessTypeTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "detect_business_type",
         description: """
@@ -242,8 +249,10 @@ public struct DetectBusinessTypeTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("signals")

@@ -20,9 +20,9 @@ struct SchemaSmokeTests {
         let schemas = allToolSchemas()
         for schema in schemas {
             for param in schema.requiredParams {
-                #expect(schema.paramTypes[param] != nil,
+                #expect(schema.paramTypes.keys.contains(param),
                         "Tool \(schema.name): required param '\(param)' missing type")
-                #expect(schema.paramDescriptions[param] != nil,
+                #expect(schema.paramDescriptions.keys.contains(param),
                         "Tool \(schema.name): required param '\(param)' missing description")
             }
         }
@@ -31,11 +31,12 @@ struct SchemaSmokeTests {
     @Test("Minimal valid args do not crash any tool")
     func testMinimalArgsDontCrash() async throws {
         let handlers = allTestToolHandlers()
+        #expect(handlers.count > 0, "Expected at least one tool handler")
         for handler in handlers {
             let schema = extractSchema(handler)
             let args = generateMinimalValidArgs(schema)
             // Should not crash — may return error result, that's fine
-            _ = try? await handler.execute(arguments: args)
+            _ = try? await handler.execute(arguments: args) // silent: crash detection only
         }
     }
 }

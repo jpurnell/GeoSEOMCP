@@ -13,12 +13,19 @@ public func getLlmsTxtTools() -> [any MCPToolHandler] {
 
 /// Result of validating llms.txt content.
 public struct LlmsTxtValidationResult: Sendable {
+    /// Whether the llms.txt content passes validation.
     public let isValid: Bool
+    /// Whether an H1 title was found.
     public let hasTitle: Bool
+    /// Whether a blockquote description was found.
     public let hasDescription: Bool
+    /// Whether H2 sections were found.
     public let hasSections: Bool
+    /// Number of H2 sections detected.
     public let sectionCount: Int
+    /// Number of markdown links detected.
     public let linkCount: Int
+    /// Validation issues found.
     public let issues: [String]
 }
 
@@ -50,7 +57,7 @@ public func validateLlmsTxt(_ content: String) -> LlmsTxtValidationResult {
     // Count H2 sections
     let sectionPattern = #"(?m)^## .+"#
     let sectionCount: Int
-    if let regex = try? NSRegularExpression(pattern: sectionPattern) {
+    if let regex = try? NSRegularExpression(pattern: sectionPattern) { // silent: regex pattern is compile-time constant
         let range = NSRange(content.startIndex..., in: content)
         sectionCount = regex.numberOfMatches(in: content, range: range)
     } else {
@@ -64,7 +71,7 @@ public func validateLlmsTxt(_ content: String) -> LlmsTxtValidationResult {
     // Count markdown links [text](url)
     let linkPattern = #"\[([^\]]+)\]\(([^)]+)\)"#
     let linkCount: Int
-    if let regex = try? NSRegularExpression(pattern: linkPattern) {
+    if let regex = try? NSRegularExpression(pattern: linkPattern) { // silent: regex pattern is compile-time constant
         let range = NSRange(content.startIndex..., in: content)
         linkCount = regex.numberOfMatches(in: content, range: range)
     } else {
@@ -87,8 +94,11 @@ public func validateLlmsTxt(_ content: String) -> LlmsTxtValidationResult {
 
 /// URL category for llms.txt organization.
 public struct URLCategory: Sendable {
+    /// The URL being categorized.
     public let url: String
+    /// Detected content category.
     public let category: String
+    /// Suggested llms.txt section for this URL.
     public let suggestedSection: String
 }
 
@@ -142,6 +152,7 @@ public func categorizeUrlsForLlmsTxt(_ urls: [String]) -> [String: URLCategory] 
 
 /// Validate llms.txt content against the specification.
 public struct ValidateLlmsTxtTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "validate_llmstxt",
         description: """
@@ -166,8 +177,10 @@ public struct ValidateLlmsTxtTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("content")
@@ -215,6 +228,7 @@ public struct ValidateLlmsTxtTool: MCPToolHandler, Sendable {
 
 /// Categorize URLs into suggested llms.txt sections.
 public struct CategorizeUrlsForLlmsTxtTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "categorize_urls_for_llmstxt",
         description: """
@@ -241,8 +255,10 @@ public struct CategorizeUrlsForLlmsTxtTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("urls")

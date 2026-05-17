@@ -13,6 +13,7 @@ public func getUtilityTools() -> [any MCPToolHandler] {
 
 /// Count syllables in text for readability analysis.
 public struct CountSyllablesTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "count_syllables",
         description: """
@@ -36,8 +37,10 @@ public struct CountSyllablesTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -57,7 +60,7 @@ public struct CountSyllablesTool: MCPToolHandler, Sendable {
 
         Total Syllables: \(totalSyllables)
         Word Count: \(wordCount)
-        Average Syllables per Word: \(String(format: "%.2f", avgSyllables))
+        Average Syllables per Word: \(avgSyllables.formatted(.number.precision(.fractionLength(2))))
         """
 
         // Show per-word breakdown for short texts (≤ 20 words)
@@ -86,6 +89,7 @@ public struct CountSyllablesTool: MCPToolHandler, Sendable {
 
 /// Calculate pronoun density in text using NLTagger.
 public struct CalculatePronounDensityTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "calculate_pronoun_density",
         description: """
@@ -111,8 +115,10 @@ public struct CalculatePronounDensityTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -146,7 +152,7 @@ public struct CalculatePronounDensityTool: MCPToolHandler, Sendable {
 
         Pronoun Count: \(pronounCount)
         Word Count: \(wordCount)
-        Pronoun Density: \(String(format: "%.1f", densityPercent))%
+        Pronoun Density: \(densityPercent.formatted(.number.precision(.fractionLength(1))))%
 
         Assessment: \(assessment)
         Impact: \(impact)

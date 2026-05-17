@@ -4,11 +4,17 @@ import Foundation
 
 /// An AI crawler definition with its user-agent string, owner, tier, and access recommendation.
 public struct AICrawler: Sendable {
+    /// Crawler display name.
     public let name: String
+    /// User-agent string used in HTTP requests.
     public let userAgent: String
+    /// Organization operating the crawler.
     public let owner: String
+    /// Description of crawler's purpose.
     public let purpose: String
+    /// Importance tier classification.
     public let tier: CrawlerTier
+    /// Recommended robots.txt action.
     public let recommendation: CrawlerRecommendation
 }
 
@@ -25,7 +31,7 @@ public enum CrawlerTier: Int, Sendable, CaseIterable {
 /// Recommended action for a crawler in robots.txt.
 public enum CrawlerRecommendation: String, Sendable {
     case allow = "ALLOW"
-    case block = "BLOCK"
+    case block = "BLOCK" // LIVE: returned in MCP tool responses for client consumption
     case contextDependent = "CONTEXT_DEPENDENT"
 }
 
@@ -34,6 +40,7 @@ public enum AICrawlerRegistry {
 
     // MARK: Tier 1 — Critical for AI Search
 
+    /// Tier 1 crawlers critical for AI search visibility.
     public static let tier1Crawlers: [AICrawler] = [
         AICrawler(
             name: "GPTBot",
@@ -79,6 +86,7 @@ public enum AICrawlerRegistry {
 
     // MARK: Tier 2 — Broader AI Ecosystem
 
+    /// Tier 2 crawlers important for broader AI ecosystem.
     public static let tier2Crawlers: [AICrawler] = [
         AICrawler(
             name: "Google-Extended",
@@ -124,6 +132,7 @@ public enum AICrawlerRegistry {
 
     // MARK: Tier 3 — Training-Only (Context-Dependent)
 
+    /// Tier 3 training-only crawlers.
     public static let tier3Crawlers: [AICrawler] = [
         AICrawler(
             name: "CCBot",
@@ -172,46 +181,75 @@ public enum GEOWeights {
 
     // MARK: Composite GEO Score Weights (sum = 1.0)
 
+    /// Citability weight in composite score.
     public static let citability: Double = 0.25
+    /// Brand authority weight in composite score.
     public static let brandAuthority: Double = 0.20
+    /// E-E-A-T weight in composite score.
     public static let contentEEAT: Double = 0.20
+    /// Technical SEO weight in composite score.
     public static let technical: Double = 0.15
+    /// Schema completeness weight in composite score.
     public static let schema: Double = 0.10
+    /// Platform presence weight in composite score.
     public static let platform: Double = 0.10
 
     // MARK: Citability Sub-Weights (sum = 1.0)
 
+    /// Answer block quality sub-weight.
     public static let answerBlockQuality: Double = 0.30
+    /// Self-containment sub-weight.
     public static let selfContainment: Double = 0.25
+    /// Structural readability sub-weight.
     public static let structuralReadability: Double = 0.20
+    /// Statistical density sub-weight.
     public static let statisticalDensity: Double = 0.15
+    /// Uniqueness signals sub-weight.
     public static let uniquenessSignals: Double = 0.10
 
     // MARK: AI Visibility Sub-Weights (sum = 1.0)
 
+    /// Tier 1 crawler access sub-weight.
     public static let tier1Access: Double = 0.50
+    /// Tier 2 crawler access sub-weight.
     public static let tier2Access: Double = 0.25
+    /// No blanket blocks sub-weight.
     public static let noBlanketBlocks: Double = 0.15
+    /// AI-specific files (llms.txt, etc.) sub-weight.
     public static let aiFiles: Double = 0.10
 
     // MARK: Technical SEO Sub-Weights (sum = 1.0)
 
+    /// Server-side rendering capability sub-weight.
     public static let ssrCapability: Double = 0.25
+    /// Meta tags sub-weight.
     public static let metaTags: Double = 0.15
+    /// Crawlability sub-weight.
     public static let crawlability: Double = 0.15
+    /// Security headers sub-weight.
     public static let securityHeaders: Double = 0.10
+    /// Core Web Vitals sub-weight.
     public static let coreWebVitals: Double = 0.10
+    /// Mobile optimization sub-weight.
     public static let mobileOptimization: Double = 0.10
+    /// URL structure sub-weight.
     public static let urlStructure: Double = 0.05
+    /// Server response sub-weight.
     public static let serverResponse: Double = 0.05
+    /// Additional technical factors sub-weight.
     public static let additionalTechnical: Double = 0.05
 
     // MARK: Brand Authority Sub-Weights (sum = 1.0)
 
+    /// YouTube platform weight.
     public static let youtube: Double = 0.25
+    /// Reddit platform weight.
     public static let reddit: Double = 0.25
+    /// Wikipedia platform weight.
     public static let wikipedia: Double = 0.20
+    /// LinkedIn platform weight.
     public static let linkedin: Double = 0.15
+    /// Other platforms weight.
     public static let otherPlatforms: Double = 0.15
 }
 
@@ -219,27 +257,34 @@ public enum GEOWeights {
 
 /// Major AI search platforms that GEO optimizes for.
 public enum AIPlatform: String, CaseIterable, Sendable {
-    case googleAIO = "google_aio"
-    case chatGPT = "chatgpt"
-    case perplexity = "perplexity"
-    case gemini = "gemini"
-    case bingCopilot = "bing_copilot"
+    case googleAIO = "google_aio" // LIVE: enumerated by MCP clients via CaseIterable
+    case chatGPT = "chatgpt" // LIVE: enumerated by MCP clients via CaseIterable
+    case perplexity = "perplexity" // LIVE: enumerated by MCP clients via CaseIterable
+    case gemini = "gemini" // LIVE: enumerated by MCP clients via CaseIterable
+    case bingCopilot = "bing_copilot" // LIVE: enumerated by MCP clients via CaseIterable
 }
 
 // MARK: - Content Benchmarks
 
 /// Page-type-specific word count and readability benchmarks.
 public struct ContentBenchmark: Sendable {
+    /// Page type identifier.
     public let pageType: String
+    /// Minimum word count threshold.
     public let minimumWords: Int
+    /// Lower bound of ideal word count range.
     public let idealRangeMin: Int
+    /// Upper bound of ideal word count range.
     public let idealRangeMax: Int
+    /// Minimum target Flesch reading ease score.
     public let targetFleschMin: Double
+    /// Maximum target Flesch reading ease score.
     public let targetFleschMax: Double
 }
 
 /// Benchmarks for different page types, keyed by type name.
 public enum ContentBenchmarks {
+    /// All page-type benchmarks keyed by type name.
     public static let all: [String: ContentBenchmark] = [
         "homepage": ContentBenchmark(
             pageType: "homepage",
@@ -304,16 +349,19 @@ public enum ContentBenchmarks {
 
 /// A platform for JSON-LD sameAs auditing, with priority and point value.
 public struct SameAsPlatform: Sendable {
+    /// Crawler display name.
     public let name: String
     /// Substring to match in sameAs URLs.
     public let urlPattern: String
     /// Priority (1 = highest).
     public let priority: Int
+    /// Maximum points awarded for this item.
     public let maxPoints: Double
 }
 
 /// Priority-ordered platforms for sameAs schema auditing. Total max points = 15.
 public enum SameAsPlatforms {
+    /// All priority-ordered sameAs platforms.
     public static let all: [SameAsPlatform] = [
         SameAsPlatform(name: "Wikipedia", urlPattern: "wikipedia.org", priority: 1, maxPoints: 3.0),
         SameAsPlatform(name: "Wikidata", urlPattern: "wikidata.org", priority: 2, maxPoints: 3.0),
@@ -330,13 +378,17 @@ public enum SameAsPlatforms {
 
 /// A security header specification with its name, HTTP key, and max score points.
 public struct SecurityHeaderSpec: Sendable {
+    /// Header display name.
     public let name: String
+    /// HTTP header key to check.
     public let headerKey: String
+    /// Maximum points awarded for this header.
     public let maxPoints: Double
 }
 
 /// The 6 security headers evaluated in technical SEO scoring. Total = 100 points.
 public enum SecurityHeaders {
+    /// All security headers evaluated in scoring.
     public static let all: [SecurityHeaderSpec] = [
         SecurityHeaderSpec(name: "HSTS", headerKey: "strict-transport-security", maxPoints: 20.0),
         SecurityHeaderSpec(name: "CSP", headerKey: "content-security-policy", maxPoints: 20.0),

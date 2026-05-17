@@ -160,6 +160,7 @@ public actor ResourceProvider: MCPResourceProvider {
         }
     }
 
+    /// Creates a new instance.
     public init() {}
 }
 
@@ -167,6 +168,7 @@ public actor ResourceProvider: MCPResourceProvider {
 public enum ResourceError: Error, LocalizedError {
     case notFound(String)
 
+    /// Localized error description.
     public var errorDescription: String? {
         switch self {
         case .notFound(let uri):

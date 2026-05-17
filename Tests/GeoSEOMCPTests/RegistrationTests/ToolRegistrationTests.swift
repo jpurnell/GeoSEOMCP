@@ -24,17 +24,17 @@ struct ToolRegistrationTests {
     func testExpectedNames() {
         let map = toolHandlersByName()
         // Utility tools
-        #expect(map["count_syllables"] != nil, "count_syllables not registered")
-        #expect(map["calculate_pronoun_density"] != nil, "calculate_pronoun_density not registered")
+        #expect(map.keys.contains("count_syllables"), "count_syllables not registered")
+        #expect(map.keys.contains("calculate_pronoun_density"), "calculate_pronoun_density not registered")
         // Citability tools
-        #expect(map["score_passage_citability"] != nil, "score_passage_citability not registered")
-        #expect(map["analyze_page_citability"] != nil, "analyze_page_citability not registered")
+        #expect(map.keys.contains("score_passage_citability"), "score_passage_citability not registered")
+        #expect(map.keys.contains("analyze_page_citability"), "analyze_page_citability not registered")
         // Crawler access tools
-        #expect(map["parse_robots_txt"] != nil, "parse_robots_txt not registered")
-        #expect(map["analyze_ai_crawler_access"] != nil, "analyze_ai_crawler_access not registered")
-        #expect(map["calculate_ai_visibility_score"] != nil, "calculate_ai_visibility_score not registered")
+        #expect(map.keys.contains("parse_robots_txt"), "parse_robots_txt not registered")
+        #expect(map.keys.contains("analyze_ai_crawler_access"), "analyze_ai_crawler_access not registered")
+        #expect(map.keys.contains("calculate_ai_visibility_score"), "calculate_ai_visibility_score not registered")
         // llms.txt tools
-        #expect(map["validate_llmstxt"] != nil, "validate_llmstxt not registered")
-        #expect(map["categorize_urls_for_llmstxt"] != nil, "categorize_urls_for_llmstxt not registered")
+        #expect(map.keys.contains("validate_llmstxt"), "validate_llmstxt not registered")
+        #expect(map.keys.contains("categorize_urls_for_llmstxt"), "categorize_urls_for_llmstxt not registered")
     }
 }

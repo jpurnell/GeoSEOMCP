@@ -15,6 +15,7 @@ public func getContentAnalysisTools() -> [any MCPToolHandler] {
 
 /// Calculate Flesch readability scores for text.
 public struct CalculateFleschReadabilityTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "calculate_flesch_readability",
         description: """
@@ -39,8 +40,10 @@ public struct CalculateFleschReadabilityTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -85,15 +88,15 @@ public struct CalculateFleschReadabilityTool: MCPToolHandler, Sendable {
         let output = """
         Flesch Readability Analysis
 
-        Flesch Reading Ease: \(readingEase.isNaN ? "N/A" : String(format: "%.1f", readingEase))
-        Flesch-Kincaid Grade Level: \(gradeLevel.isNaN ? "N/A" : String(format: "%.1f", gradeLevel))
+        Flesch Reading Ease: \(readingEase.isNaN ? "N/A" : readingEase.formatted(.number.precision(.fractionLength(1))))
+        Flesch-Kincaid Grade Level: \(gradeLevel.isNaN ? "N/A" : gradeLevel.formatted(.number.precision(.fractionLength(1))))
 
         Text Statistics:
           Words: \(wordCount)
           Sentences: \(sentenceCount)
           Syllables: \(syllableCount)
-          Avg syllables/word: \(wordCount > 0 ? String(format: "%.2f", Double(syllableCount) / Double(wordCount)) : "N/A")
-          Avg words/sentence: \(sentenceCount > 0 ? String(format: "%.1f", Double(wordCount) / Double(sentenceCount)) : "N/A")
+          Avg syllables/word: \(wordCount > 0 ? (Double(syllableCount) / Double(wordCount)).formatted(.number.precision(.fractionLength(2))) : "N/A")
+          Avg words/sentence: \(sentenceCount > 0 ? (Double(wordCount) / Double(sentenceCount)).formatted(.number.precision(.fractionLength(1))) : "N/A")
 
         Interpretation: \(interpretation)
         """
@@ -119,6 +122,7 @@ public struct CalculateFleschReadabilityTool: MCPToolHandler, Sendable {
 
 /// Analyze content statistics: word count, sentences, paragraphs, etc.
 public struct AnalyzeContentStatisticsTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "analyze_content_statistics",
         description: """
@@ -142,8 +146,10 @@ public struct AnalyzeContentStatisticsTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -171,16 +177,16 @@ public struct AnalyzeContentStatisticsTool: MCPToolHandler, Sendable {
           Word Count: \(wordCount)
           Sentence Count: \(sentenceCount)
           Paragraph Count: \(paragraphs.count)
-          Avg Words/Sentence: \(sentenceCount > 0 ? String(format: "%.1f", Double(wordCount) / Double(sentenceCount)) : "N/A")
-          Avg Sentences/Paragraph: \(paragraphs.count > 0 ? String(format: "%.1f", Double(sentenceCount) / Double(paragraphs.count)) : "N/A")
+          Avg Words/Sentence: \(sentenceCount > 0 ? (Double(wordCount) / Double(sentenceCount)).formatted(.number.precision(.fractionLength(1))) : "N/A")
+          Avg Sentences/Paragraph: \(paragraphs.count > 0 ? (Double(sentenceCount) / Double(paragraphs.count)).formatted(.number.precision(.fractionLength(1))) : "N/A")
 
         Readability:
           Total Syllables: \(syllableCount)
-          Avg Syllables/Word: \(wordCount > 0 ? String(format: "%.2f", Double(syllableCount) / Double(wordCount)) : "N/A")
+          Avg Syllables/Word: \(wordCount > 0 ? (Double(syllableCount) / Double(wordCount)).formatted(.number.precision(.fractionLength(2))) : "N/A")
 
         Content Signals:
           Statistical Elements: \(statElements)
-          Pronoun Density: \(String(format: "%.1f", density * 100))%
+          Pronoun Density: \((density * 100).formatted(.number.precision(.fractionLength(1))))%
           Contains Definitions: \(hasDefinitions ? "Yes" : "No")
           Contains List Structure: \(hasLists ? "Yes" : "No")
         """
@@ -208,6 +214,7 @@ public struct AnalyzeContentStatisticsTool: MCPToolHandler, Sendable {
 
 /// Calculate E-E-A-T score from component ratings.
 public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "calculate_eeat_score",
         description: """
@@ -247,8 +254,10 @@ public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("experience")
@@ -274,14 +283,14 @@ public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
         E-E-A-T Score Analysis
 
         Component Scores (0-25 each):
-          Experience:        \(String(format: "%.1f", experience))
-          Expertise:         \(String(format: "%.1f", expertise))
-          Authoritativeness: \(String(format: "%.1f", authoritativeness))
-          Trustworthiness:   \(String(format: "%.1f", trustworthiness))
+          Experience:        \(experience.formatted(.number.precision(.fractionLength(1))))
+          Expertise:         \(expertise.formatted(.number.precision(.fractionLength(1))))
+          Authoritativeness: \(authoritativeness.formatted(.number.precision(.fractionLength(1))))
+          Trustworthiness:   \(trustworthiness.formatted(.number.precision(.fractionLength(1))))
 
-        Base Score: \(String(format: "%.1f", baseScore)) / 100
-        Modifier: \(modifier >= 0 ? "+" : "")\(String(format: "%.1f", modifier))
-        Final Score: \(String(format: "%.1f", finalScore)) / 110
+        Base Score: \(baseScore.formatted(.number.precision(.fractionLength(1)))) / 100
+        Modifier: \(modifier >= 0 ? "+" : "")\(modifier.formatted(.number.precision(.fractionLength(1))))
+        Final Score: \(finalScore.formatted(.number.precision(.fractionLength(1)))) / 110
 
         Assessment: \(grade)
         """
@@ -307,6 +316,7 @@ public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
 
 /// Check content against page-type benchmarks.
 public struct CheckContentBenchmarksTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "check_content_benchmarks",
         description: """
@@ -333,8 +343,10 @@ public struct CheckContentBenchmarksTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -360,7 +372,7 @@ public struct CheckContentBenchmarksTool: MCPToolHandler, Sendable {
 
             Content Stats:
               Word Count: \(wordCount)
-              Flesch Reading Ease: \(readingEase.isNaN ? "N/A" : String(format: "%.1f", readingEase))
+              Flesch Reading Ease: \(readingEase.isNaN ? "N/A" : readingEase.formatted(.number.precision(.fractionLength(1))))
             """)
         }
 
@@ -382,9 +394,9 @@ public struct CheckContentBenchmarksTool: MCPToolHandler, Sendable {
         // Readability checks
         if !readingEase.isNaN {
             if readingEase >= benchmark.targetFleschMin && readingEase <= benchmark.targetFleschMax {
-                passes.append("Readability (\(String(format: "%.1f", readingEase))) is in target range (\(String(format: "%.0f", benchmark.targetFleschMin))-\(String(format: "%.0f", benchmark.targetFleschMax)))")
+                passes.append("Readability (\(readingEase.formatted(.number.precision(.fractionLength(1))))) is in target range (\(benchmark.targetFleschMin.formatted(.number.precision(.fractionLength(0))))-\(benchmark.targetFleschMax.formatted(.number.precision(.fractionLength(0)))))")
             } else {
-                issues.append("Readability (\(String(format: "%.1f", readingEase))) is outside target range (\(String(format: "%.0f", benchmark.targetFleschMin))-\(String(format: "%.0f", benchmark.targetFleschMax)))")
+                issues.append("Readability (\(readingEase.formatted(.number.precision(.fractionLength(1))))) is outside target range (\(benchmark.targetFleschMin.formatted(.number.precision(.fractionLength(0))))-\(benchmark.targetFleschMax.formatted(.number.precision(.fractionLength(0)))))")
             }
         }
 
@@ -397,7 +409,7 @@ public struct CheckContentBenchmarksTool: MCPToolHandler, Sendable {
 
         Metrics:
           Word Count: \(wordCount) (min: \(benchmark.minimumWords), ideal: \(benchmark.idealRangeMin)-\(benchmark.idealRangeMax))
-          Flesch Reading Ease: \(readingEase.isNaN ? "N/A" : String(format: "%.1f", readingEase)) (target: \(String(format: "%.0f", benchmark.targetFleschMin))-\(String(format: "%.0f", benchmark.targetFleschMax)))
+          Flesch Reading Ease: \(readingEase.isNaN ? "N/A" : readingEase.formatted(.number.precision(.fractionLength(1)))) (target: \(benchmark.targetFleschMin.formatted(.number.precision(.fractionLength(0))))-\(benchmark.targetFleschMax.formatted(.number.precision(.fractionLength(0)))))
         """
 
         if !passes.isEmpty {

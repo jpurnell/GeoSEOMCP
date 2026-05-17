@@ -25,6 +25,7 @@ public struct GeoSEOResult: Codable, Sendable {
     /// Tool-specific structured data.
     public let data: [String: JSONValue]
 
+    /// Creates a new structured result envelope.
     public init(
         tool: String,
         resultType: ResultType,
@@ -56,6 +57,7 @@ public struct ScorePayload: Codable, Sendable {
     /// Optional letter grade (A-F, or descriptive like "Excellent").
     public let grade: String?
 
+    /// Creates a new score payload.
     public init(value: Double, maximum: Double, grade: String? = nil) {
         self.value = value
         self.maximum = maximum
@@ -77,27 +79,29 @@ public enum JSONValue: Codable, Sendable, Equatable {
     case array([JSONValue])
     case object([String: JSONValue])
 
+    /// Creates a JSONValue by decoding from a single-value container.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         if container.decodeNil() {
             self = .null
-        } else if let v = try? container.decode(Bool.self) {
+        } else if let v = try? container.decode(Bool.self) { // silent: best-effort JSON encoding fallback
             self = .bool(v)
-        } else if let v = try? container.decode(Int.self) {
+        } else if let v = try? container.decode(Int.self) { // silent: best-effort JSON encoding fallback
             self = .integer(v)
-        } else if let v = try? container.decode(Double.self) {
+        } else if let v = try? container.decode(Double.self) { // silent: best-effort JSON encoding fallback
             self = .number(v)
-        } else if let v = try? container.decode(String.self) {
+        } else if let v = try? container.decode(String.self) { // silent: best-effort JSON encoding fallback
             self = .string(v)
-        } else if let v = try? container.decode([JSONValue].self) {
+        } else if let v = try? container.decode([JSONValue].self) { // silent: best-effort JSON encoding fallback
             self = .array(v)
-        } else if let v = try? container.decode([String: JSONValue].self) {
+        } else if let v = try? container.decode([String: JSONValue].self) { // silent: best-effort JSON encoding fallback
             self = .object(v)
         } else {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported JSON value")
         }
     }
 
+    /// Encodes this JSONValue into the given encoder.
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
@@ -124,7 +128,7 @@ extension MCPToolCallResult {
         encoder.outputFormatting = [.sortedKeys]
 
         let jsonString: String
-        if let data = try? encoder.encode(json),
+        if let data = try? encoder.encode(json), // silent: best-effort JSON encoding fallback
            let str = String(data: data, encoding: .utf8) {
             jsonString = str
         } else {

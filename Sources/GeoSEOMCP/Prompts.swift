@@ -115,6 +115,7 @@ public actor PromptProvider: MCPPromptProvider {
         }
     }
 
+    /// Creates a new instance.
     public init() {}
 }
 

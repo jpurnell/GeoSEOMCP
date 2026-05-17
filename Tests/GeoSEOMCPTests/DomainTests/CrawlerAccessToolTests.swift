@@ -18,8 +18,8 @@ struct RobotsTxtParsingTests {
         Allow: /
         """
         let rules = parseRobotsTxt(content)
-        #expect(rules["GPTBot"] != nil)
-        #expect(rules["*"] != nil)
+        #expect(rules.keys.contains("GPTBot"))
+        #expect(rules.keys.contains("*"))
     }
 
     @Test("Empty robots.txt returns empty rules")
@@ -38,7 +38,7 @@ struct RobotsTxtParsingTests {
 
         """
         let rules = parseRobotsTxt(content)
-        #expect(rules["GPTBot"] != nil)
+        #expect(rules.keys.contains("GPTBot"))
         #expect(rules.count == 1)
     }
 

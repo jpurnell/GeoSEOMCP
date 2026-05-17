@@ -205,7 +205,7 @@ struct PronounDensityTests {
 
     @Test("Edge: empty string returns 0.0")
     func testEmptyString() {
-        #expect(pronounDensity(in: "") == 0.0)
+        #expect(abs(pronounDensity(in: "")) < 1e-10)
     }
 }
 
@@ -436,13 +436,13 @@ struct ConstantsValidationTests {
     @Test("Content benchmarks cover expected page types")
     func testBenchmarkTypes() {
         let benchmarks = ContentBenchmarks.all
-        #expect(benchmarks["homepage"] != nil)
-        #expect(benchmarks["blog"] != nil)
-        #expect(benchmarks["pillar"] != nil)
-        #expect(benchmarks["product"] != nil)
-        #expect(benchmarks["service"] != nil)
-        #expect(benchmarks["about"] != nil)
-        #expect(benchmarks["faq"] != nil)
+        #expect(benchmarks.keys.contains("homepage"))
+        #expect(benchmarks.keys.contains("blog"))
+        #expect(benchmarks.keys.contains("pillar"))
+        #expect(benchmarks.keys.contains("product"))
+        #expect(benchmarks.keys.contains("service"))
+        #expect(benchmarks.keys.contains("about"))
+        #expect(benchmarks.keys.contains("faq"))
     }
 
     @Test("sameAs platforms have correct max points total")

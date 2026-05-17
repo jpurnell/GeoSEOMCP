@@ -15,6 +15,7 @@ public func getSchemaTools() -> [any MCPToolHandler] {
 
 /// Validate JSON-LD structured data.
 public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "validate_json_ld",
         description: """
@@ -38,8 +39,10 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("json_ld")
@@ -48,7 +51,7 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
         let jsonString = try args.getString("json_ld")
 
         guard let data = jsonString.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+              let parsed = try? JSONSerialization.jsonObject(with: data) // silent: invalid JSON yields user-facing error below
         else {
             let earlyOutput = """
             JSON-LD Validation
@@ -58,8 +61,8 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
             """
             let earlyResult = GeoSEOResult(
                 tool: "validate_json_ld",
-                resultType: .analysis,
-                score: nil,
+                resultType: .scored,
+                score: ScorePayload(value: 0, maximum: 100, grade: nil),
                 data: [
                     "status": .string("INVALID"),
                     "schemaType": .string("Unknown"),
@@ -71,86 +74,116 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
             return .structured(json: earlyResult, text: earlyOutput)
         }
 
-        var issues: [String] = []
-        var findings: [String] = []
-
-        // Check @context
-        if let context = json["@context"] as? String {
-            if context.contains("schema.org") {
-                findings.append("@context: ✓ schema.org")
-            } else {
-                issues.append("@context does not reference schema.org")
-            }
+        // Support both single objects and arrays of JSON-LD blocks
+        let blocks: [[String: Any]]
+        if let single = parsed as? [String: Any] {
+            blocks = [single]
+        } else if let array = parsed as? [[String: Any]] {
+            blocks = array
         } else {
-            issues.append("Missing @context — should be \"https://schema.org\"")
+            blocks = []
         }
 
-        // Check @type
-        let schemaType: String
-        if let type = json["@type"] as? String {
-            schemaType = type
-            findings.append("@type: ✓ \(type)")
-        } else {
-            schemaType = "Unknown"
-            issues.append("Missing @type — required for schema.org validation")
-        }
+        var allIssues: [String] = []
+        var allFindings: [String] = []
+        var schemaTypes: [String] = []
+        var totalPropertyCount = 0
 
-        // Check common properties based on type
-        let expectedProps: [String]
-        switch schemaType {
-        case "Organization":
-            expectedProps = ["name", "url", "logo", "sameAs", "description"]
-        case "WebSite":
-            expectedProps = ["name", "url", "potentialAction"]
-        case "Article", "BlogPosting", "NewsArticle":
-            expectedProps = ["headline", "author", "datePublished", "image"]
-        case "Product":
-            expectedProps = ["name", "description", "offers", "image"]
-        case "LocalBusiness":
-            expectedProps = ["name", "address", "telephone", "openingHours"]
-        case "FAQPage":
-            expectedProps = ["mainEntity"]
-        default:
-            expectedProps = ["name"]
-        }
-
-        for prop in expectedProps {
-            if json[prop] != nil {
-                findings.append("\(prop): ✓ present")
-            } else {
-                issues.append("Missing recommended property: \(prop)")
+        for json in blocks {
+            // Check @context
+            if let context = json["@context"] as? String {
+                if context.contains("schema.org") {
+                    allFindings.append("@context: ✓ schema.org")
+                } else {
+                    allIssues.append("@context does not reference schema.org")
+                }
+            } else if blocks.count == 1 {
+                // Only flag missing @context for single blocks; in multi-block pages
+                // the context is often on the first block only
+                allIssues.append("Missing @context — should be \"https://schema.org\"")
             }
+
+            // Check @type
+            let schemaType: String
+            if let type = json["@type"] as? String {
+                schemaType = type
+                allFindings.append("@type: ✓ \(type)")
+                schemaTypes.append(type)
+            } else {
+                schemaType = "Unknown"
+                allIssues.append("Missing @type — required for schema.org validation")
+                continue
+            }
+
+            // Check common properties based on type
+            let expectedProps: [String]
+            switch schemaType {
+            case "Organization":
+                expectedProps = ["name", "url", "logo", "sameAs", "description"]
+            case "WebSite":
+                expectedProps = ["name", "url", "potentialAction"]
+            case "Article", "BlogPosting", "NewsArticle":
+                expectedProps = ["headline", "author", "datePublished", "image"]
+            case "Product":
+                expectedProps = ["name", "description", "offers", "image"]
+            case "LocalBusiness":
+                expectedProps = ["name", "address", "telephone", "openingHours"]
+            case "FAQPage":
+                expectedProps = ["mainEntity"]
+            case "BreadcrumbList":
+                expectedProps = ["itemListElement"]
+            case "Event":
+                expectedProps = ["name", "startDate", "location"]
+            default:
+                expectedProps = ["name"]
+            }
+
+            for prop in expectedProps {
+                if json[prop] != nil {
+                    allFindings.append("\(schemaType).\(prop): ✓ present")
+                } else {
+                    allIssues.append("\(schemaType): missing recommended property: \(prop)")
+                }
+            }
+
+            totalPropertyCount += json.keys.filter { !$0.hasPrefix("@") }.count
         }
 
-        let status = issues.isEmpty ? "VALID" : "HAS ISSUES"
-        let propertyCount = json.keys.filter { !$0.hasPrefix("@") }.count
+        let status = allIssues.isEmpty ? "VALID" : "HAS ISSUES"
+        let typesSummary = schemaTypes.isEmpty ? "Unknown" : schemaTypes.joined(separator: ", ")
 
         var output = """
         JSON-LD Validation
 
         Status: \(status)
-        Type: \(schemaType)
-        Properties: \(propertyCount)
+        Types: \(typesSummary) (\(blocks.count) block\(blocks.count == 1 ? "" : "s"))
+        Properties: \(totalPropertyCount)
 
         Findings:
         """
-        for finding in findings { output += "\n  \(finding)" }
+        for finding in allFindings { output += "\n  \(finding)" }
 
-        if !issues.isEmpty {
+        if !allIssues.isEmpty {
             output += "\n\nIssues:"
-            for issue in issues { output += "\n  ✗ \(issue)" }
+            for issue in allIssues { output += "\n  ✗ \(issue)" }
         }
+
+        // Score: ratio of findings to total checks, scaled to 100
+        let totalChecks = allFindings.count + allIssues.count
+        let jsonLDScore: Double = totalChecks > 0
+            ? Double(allFindings.count) / Double(totalChecks) * 100.0
+            : (blocks.isEmpty ? 0.0 : 100.0)
 
         let result = GeoSEOResult(
             tool: "validate_json_ld",
-            resultType: .analysis,
-            score: nil,
+            resultType: .scored,
+            score: ScorePayload(value: jsonLDScore, maximum: 100, grade: nil),
             data: [
                 "status": .string(status),
-                "schemaType": .string(schemaType),
-                "propertyCount": .integer(propertyCount),
-                "issues": .array(issues.map { .string($0) }),
-                "findings": .array(findings.map { .string($0) }),
+                "schemaType": .string(typesSummary),
+                "propertyCount": .integer(totalPropertyCount),
+                "issues": .array(allIssues.map { .string($0) }),
+                "findings": .array(allFindings.map { .string($0) }),
             ]
         )
         return .structured(json: result, text: output)
@@ -161,6 +194,7 @@ public struct ValidateJsonLdTool: MCPToolHandler, Sendable {
 
 /// Audit sameAs coverage against priority platforms.
 public struct AuditSameAsCoverageTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "audit_sameas_coverage",
         description: """
@@ -185,8 +219,10 @@ public struct AuditSameAsCoverageTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("sameas_urls")
@@ -213,21 +249,21 @@ public struct AuditSameAsCoverageTool: MCPToolHandler, Sendable {
         var output = """
         sameAs Coverage Audit
 
-        Score: \(String(format: "%.0f", totalPoints)) / 15 points (\(String(format: "%.0f", percentage))%)
+        Score: \(totalPoints.formatted(.number.precision(.fractionLength(0)))) / 15 points (\(percentage.formatted(.number.precision(.fractionLength(0))))%)
         Platforms Covered: \(covered.count) / \(SameAsPlatforms.all.count)
         """
 
         if !covered.isEmpty {
             output += "\n\nCovered:"
             for (name, points) in covered {
-                output += "\n  ✓ \(name) (+\(String(format: "%.0f", points)) pts)"
+                output += "\n  ✓ \(name) (+\(points.formatted(.number.precision(.fractionLength(0)))) pts)"
             }
         }
 
         if !missing.isEmpty {
             output += "\n\nMissing:"
             for (name, points) in missing {
-                output += "\n  ✗ \(name) (\(String(format: "%.0f", points)) pts available)"
+                output += "\n  ✗ \(name) (\(points.formatted(.number.precision(.fractionLength(0)))) pts available)"
             }
         }
 
@@ -252,6 +288,7 @@ public struct AuditSameAsCoverageTool: MCPToolHandler, Sendable {
 
 /// Score schema.org implementation completeness.
 public struct ScoreSchemaCompletenessTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "score_schema_completeness",
         description: """
@@ -275,13 +312,19 @@ public struct ScoreSchemaCompletenessTool: MCPToolHandler, Sendable {
                     description: "List of schema.org @type values found on the site",
                     items: MCPSchemaItems(type: "string")
                 ),
+                "business_type": MCPSchemaProperty(
+                    type: "string",
+                    description: "Optional business type hint (e.g. 'nonprofit', 'ecommerce', 'local_business', 'saas'). When provided, irrelevant schema tiers (like Product for nonprofits) are excluded from scoring."
+                ),
             ],
             required: ["schema_types"]
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("schema_types")
@@ -289,19 +332,34 @@ public struct ScoreSchemaCompletenessTool: MCPToolHandler, Sendable {
 
         let types = try args.getStringArray("schema_types")
         let typeSet = Set(types.map { $0.lowercased() })
+        let businessType = args.getStringOptional("business_type")?.lowercased()
+
+        // Business types that should NOT be penalized for missing Product/LocalBusiness
+        let nonProductTypes: Set<String> = [
+            "nonprofit", "non-profit", "education", "government", "media",
+            "saas", "community", "personal", "portfolio", "blog"
+        ]
+        let skipProductTier = businessType.map { nonProductTypes.contains($0) } ?? false
 
         var score = 0.0
         var found: [(String, Double)] = []
         var missing: [(String, Double)] = []
 
-        let scoredTypes: [(String, [String], Double)] = [
+        var scoredTypes: [(String, [String], Double)] = [
             ("Organization", ["organization"], 25),
             ("WebSite", ["website"], 20),
             ("Article/BlogPosting", ["article", "blogposting", "newsarticle"], 15),
             ("BreadcrumbList", ["breadcrumblist"], 15),
             ("FAQPage", ["faqpage"], 10),
-            ("Product/LocalBusiness", ["product", "localbusiness"], 10),
         ]
+
+        if skipProductTier {
+            // Redistribute the 10 points: +5 to Organization, +5 to FAQPage
+            scoredTypes[0].2 = 30  // Organization
+            scoredTypes[4].2 = 15  // FAQPage
+        } else {
+            scoredTypes.append(("Product/LocalBusiness", ["product", "localbusiness"], 10))
+        }
 
         for (name, matchTypes, points) in scoredTypes {
             if matchTypes.contains(where: { typeSet.contains($0) }) {
@@ -323,25 +381,25 @@ public struct ScoreSchemaCompletenessTool: MCPToolHandler, Sendable {
         var output = """
         Schema Completeness Score
 
-        Score: \(String(format: "%.0f", score)) / 100
+        Score: \(score.formatted(.number.precision(.fractionLength(0)))) / 100
         Types Found: \(types.count)
         """
 
         if !found.isEmpty {
             output += "\n\nImplemented:"
             for (name, points) in found {
-                output += "\n  ✓ \(name) (+\(String(format: "%.0f", points)) pts)"
+                output += "\n  ✓ \(name) (+\(points.formatted(.number.precision(.fractionLength(0)))) pts)"
             }
         }
 
         if additionalBonus > 0 {
-            output += "\n  + Additional types bonus: +\(String(format: "%.0f", additionalBonus)) pts"
+            output += "\n  + Additional types bonus: +\(additionalBonus.formatted(.number.precision(.fractionLength(0)))) pts"
         }
 
         if !missing.isEmpty {
             output += "\n\nMissing (recommended):"
             for (name, points) in missing {
-                output += "\n  ✗ \(name) (\(String(format: "%.0f", points)) pts)"
+                output += "\n  ✗ \(name) (\(points.formatted(.number.precision(.fractionLength(0)))) pts)"
             }
         }
 
@@ -363,6 +421,7 @@ public struct ScoreSchemaCompletenessTool: MCPToolHandler, Sendable {
 
 /// Generate JSON-LD schema templates for different business types.
 public struct GenerateSchemaTemplateTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "generate_schema_template",
         description: """
@@ -389,8 +448,10 @@ public struct GenerateSchemaTemplateTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("business_type")

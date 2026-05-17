@@ -93,9 +93,9 @@ struct URLCategorizationTests {
             "/products/widget",
             "/contact",
         ])
-        #expect(categories["/pricing"] != nil)
-        #expect(categories["/blog/my-post"] != nil)
-        #expect(categories["/about"] != nil)
+        #expect(categories.keys.contains("/pricing"))
+        #expect(categories.keys.contains("/blog/my-post"))
+        #expect(categories.keys.contains("/about"))
     }
 
     @Test("Empty URL list returns empty result")

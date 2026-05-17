@@ -47,7 +47,7 @@ public func countSentences(in text: String) -> Int {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return 0 }
     let pattern = #"[.!?]+[\s]+|[.!?]+$"#
-    if let regex = try? NSRegularExpression(pattern: pattern) {
+    if let regex = try? NSRegularExpression(pattern: pattern) { // silent: graceful fallback when NL framework unavailable
         let range = NSRange(trimmed.startIndex..., in: trimmed)
         let count = regex.numberOfMatches(in: trimmed, range: range)
         return max(count, 1)
@@ -74,7 +74,7 @@ public func tokenizeWords(_ text: String) -> [String] {
     #else
     // Split on whitespace and punctuation boundaries, keeping word characters
     let pattern = #"[\w']+"#
-    guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+    guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] } // silent: graceful fallback when NL framework unavailable
     let range = NSRange(text.startIndex..., in: text)
     let matches = regex.matches(in: text, range: range)
     return matches.compactMap { match in
@@ -259,7 +259,7 @@ public func countStatisticalElements(in text: String) -> Int {
         #"\b\d{1,3}(,\d{3})+\b"#,         // Large numbers: 1,000,000
     ]
     for pattern in patterns {
-        if let regex = try? NSRegularExpression(pattern: pattern) {
+        if let regex = try? NSRegularExpression(pattern: pattern) { // silent: graceful fallback when NL framework unavailable
             let range = NSRange(text.startIndex..., in: text)
             count += regex.numberOfMatches(in: text, range: range)
         }

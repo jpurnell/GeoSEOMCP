@@ -16,6 +16,7 @@ public func getTechnicalSEOTools() -> [any MCPToolHandler] {
 
 /// Analyze security headers against the 6 recommended headers.
 public struct AnalyzeSecurityHeadersTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "analyze_security_headers",
         description: """
@@ -37,8 +38,10 @@ public struct AnalyzeSecurityHeadersTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("headers")
@@ -76,21 +79,21 @@ public struct AnalyzeSecurityHeadersTool: MCPToolHandler, Sendable {
         var output = """
         Security Headers Analysis
 
-        Score: \(String(format: "%.0f", totalScore)) / 100
+        Score: \(totalScore.formatted(.number.precision(.fractionLength(0)))) / 100
         Headers Found: \(found.count) / \(SecurityHeaders.all.count)
         """
 
         if !found.isEmpty {
             output += "\n\nPresent:"
             for (name, points) in found {
-                output += "\n  ✓ \(name) (+\(String(format: "%.0f", points)) pts)"
+                output += "\n  ✓ \(name) (+\(points.formatted(.number.precision(.fractionLength(0)))) pts)"
             }
         }
 
         if !missing.isEmpty {
             output += "\n\nMissing:"
             for (name, points) in missing {
-                output += "\n  ✗ \(name) (\(String(format: "%.0f", points)) pts)"
+                output += "\n  ✗ \(name) (\(points.formatted(.number.precision(.fractionLength(0)))) pts)"
             }
         }
 
@@ -114,6 +117,7 @@ public struct AnalyzeSecurityHeadersTool: MCPToolHandler, Sendable {
 
 /// Analyze HTML heading hierarchy for SEO compliance.
 public struct AnalyzeHeadingStructureTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "analyze_heading_structure",
         description: """
@@ -137,8 +141,10 @@ public struct AnalyzeHeadingStructureTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("headings")
@@ -232,10 +238,13 @@ public struct AnalyzeHeadingStructureTool: MCPToolHandler, Sendable {
             }
         }
 
+        // Score: start at 100, deduct 25 per issue, floor at 0
+        let headingScore = max(0.0, 100.0 - Double(issues.count) * 25.0)
+
         let result = GeoSEOResult(
             tool: "analyze_heading_structure",
-            resultType: .analysis,
-            score: nil,
+            resultType: .scored,
+            score: ScorePayload(value: headingScore, maximum: 100, grade: nil),
             data: [
                 "isValid": .bool(isValid),
                 "totalHeadings": .integer(headings.count),
@@ -252,6 +261,7 @@ public struct AnalyzeHeadingStructureTool: MCPToolHandler, Sendable {
 
 /// Audit essential meta tags for SEO.
 public struct AuditMetaTagsTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "audit_meta_tags",
         description: """
@@ -286,8 +296,10 @@ public struct AuditMetaTagsTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("title")
@@ -357,10 +369,13 @@ public struct AuditMetaTagsTool: MCPToolHandler, Sendable {
             for issue in issues { output += "\n  ✗ \(issue)" }
         }
 
+        // Score: 25 points per passing check (4 checks max = 100)
+        let metaScore = Double(passes.count) / 4.0 * 100.0
+
         let result = GeoSEOResult(
             tool: "audit_meta_tags",
-            resultType: .analysis,
-            score: nil,
+            resultType: .scored,
+            score: ScorePayload(value: metaScore, maximum: 100, grade: nil),
             data: [
                 "titleLength": .integer(title.count),
                 "issues": .array(issues.map { .string($0) }),
@@ -376,6 +391,7 @@ public struct AuditMetaTagsTool: MCPToolHandler, Sendable {
 
 /// Detect server-side rendering capability.
 public struct DetectSSRCapabilityTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "detect_ssr_capability",
         description: """
@@ -408,8 +424,10 @@ public struct DetectSSRCapabilityTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("has_initial_content")
@@ -458,7 +476,7 @@ public struct DetectSSRCapabilityTool: MCPToolHandler, Sendable {
         SSR Detection Analysis
 
         Classification: \(classification)
-        Confidence Score: \(String(format: "%.0f", score)) / 100
+        Confidence Score: \(score.formatted(.number.precision(.fractionLength(0)))) / 100
 
         Signals Detected:
         \(signals.isEmpty ? "  None" : signals.map { "  • \($0)" }.joined(separator: "\n"))
@@ -484,6 +502,7 @@ public struct DetectSSRCapabilityTool: MCPToolHandler, Sendable {
 
 /// Calculate weighted technical SEO composite score.
 public struct ScoreTechnicalSEOTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "score_technical_seo",
         description: """
@@ -518,8 +537,10 @@ public struct ScoreTechnicalSEOTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("ssr_score")
@@ -546,17 +567,17 @@ public struct ScoreTechnicalSEOTool: MCPToolHandler, Sendable {
         let output = """
         Technical SEO Composite Score
 
-        Overall Score: \(String(format: "%.1f", composite)) / 100
+        Overall Score: \(composite.formatted(.number.precision(.fractionLength(1)))) / 100
 
         Component Breakdown:
-          SSR Capability (25%):     \(String(format: "%.0f", ssr))
-          Meta Tags (15%):          \(String(format: "%.0f", meta))
-          Crawlability (15%):       \(String(format: "%.0f", crawl))
-          Security Headers (10%):   \(String(format: "%.0f", security))
-          Core Web Vitals (10%):    \(String(format: "%.0f", cwv))
-          Mobile Optimization (10%): \(String(format: "%.0f", mobile))
-          URL Structure (5%):       \(String(format: "%.0f", url))
-          Server Response (5%):     \(String(format: "%.0f", server))
+          SSR Capability (25%):     \(ssr.formatted(.number.precision(.fractionLength(0))))
+          Meta Tags (15%):          \(meta.formatted(.number.precision(.fractionLength(0))))
+          Crawlability (15%):       \(crawl.formatted(.number.precision(.fractionLength(0))))
+          Security Headers (10%):   \(security.formatted(.number.precision(.fractionLength(0))))
+          Core Web Vitals (10%):    \(cwv.formatted(.number.precision(.fractionLength(0))))
+          Mobile Optimization (10%): \(mobile.formatted(.number.precision(.fractionLength(0))))
+          URL Structure (5%):       \(url.formatted(.number.precision(.fractionLength(0))))
+          Server Response (5%):     \(server.formatted(.number.precision(.fractionLength(0))))
         """
 
         let result = GeoSEOResult(

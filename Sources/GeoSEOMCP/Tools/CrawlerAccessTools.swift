@@ -14,9 +14,12 @@ public func getCrawlerAccessTools() -> [any MCPToolHandler] {
 
 /// A single directive in a robots.txt rule group.
 public struct RobotsTxtDirective: Sendable {
+    /// Type of directive (allow or disallow).
     public let type: DirectiveType
+    /// URL path pattern this directive applies to.
     public let path: String
 
+    /// Type of robots.txt directive.
     public enum DirectiveType: String, Sendable {
         case allow = "Allow"
         case disallow = "Disallow"
@@ -78,12 +81,18 @@ public func parseRobotsTxt(_ content: String) -> [String: [RobotsTxtDirective]] 
 
 /// Access status for a single AI crawler.
 public struct CrawlerAccessResult: Sendable {
+    /// Name of the AI crawler.
     public let crawlerName: String
+    /// User-agent string of the crawler.
     public let userAgent: String
+    /// Importance tier of the crawler.
     public let tier: CrawlerTier
+    /// Whether the crawler is allowed or blocked.
     public let status: AccessStatus
+    /// Explanation of the access determination.
     public let reason: String
 
+    /// Access status determination for a crawler.
     public enum AccessStatus: String, Sendable {
         case allowed = "Allowed"
         case blocked = "Blocked"
@@ -201,6 +210,7 @@ public func calculateAIVisibilityScore(
 
 /// Parse robots.txt content and extract user-agent rules.
 public struct ParseRobotsTxtTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "parse_robots_txt",
         description: """
@@ -221,8 +231,10 @@ public struct ParseRobotsTxtTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("content")
@@ -272,6 +284,7 @@ public struct ParseRobotsTxtTool: MCPToolHandler, Sendable {
 
 /// Analyze which AI crawlers are allowed/blocked by robots.txt.
 public struct AnalyzeAICrawlerAccessTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "analyze_ai_crawler_access",
         description: """
@@ -295,8 +308,10 @@ public struct AnalyzeAICrawlerAccessTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("robots_txt")
@@ -353,6 +368,7 @@ public struct AnalyzeAICrawlerAccessTool: MCPToolHandler, Sendable {
 
 /// Calculate weighted AI visibility score based on crawler access.
 public struct CalculateAIVisibilityScoreTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "calculate_ai_visibility_score",
         description: """
@@ -385,8 +401,10 @@ public struct CalculateAIVisibilityScoreTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("robots_txt")
@@ -404,7 +422,7 @@ public struct CalculateAIVisibilityScoreTool: MCPToolHandler, Sendable {
         let tier2Allowed = access.filter { $0.tier == .tier2 && $0.status == .allowed }.count
 
         let output = """
-        AI Visibility Score: \(String(format: "%.1f", score)) / 100
+        AI Visibility Score: \(score.formatted(.number.precision(.fractionLength(1)))) / 100
 
         Component Breakdown:
           Tier 1 Access (50%): \(tier1Allowed)/5 crawlers allowed

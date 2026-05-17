@@ -13,13 +13,21 @@ public func getCitabilityTools() -> [any MCPToolHandler] {
 
 /// Per-dimension citability scores for a passage.
 public struct CitabilityScore: Sendable {
+    /// Weighted composite citability score.
     public let composite: Double
+    /// Answer block quality dimension score.
     public let answerBlockQuality: Double
+    /// Self-containment dimension score.
     public let selfContainment: Double
+    /// Structural readability dimension score.
     public let structuralReadability: Double
+    /// Statistical density dimension score.
     public let statisticalDensity: Double
+    /// Uniqueness signals dimension score.
     public let uniquenessSignals: Double
+    /// Letter grade based on composite score.
     public let grade: String
+    /// Total word count of the passage.
     public let wordCount: Int
 }
 
@@ -101,13 +109,13 @@ private func scoreAnswerBlockQuality(wordCount: Int, text: String) -> Double {
         score = Double(wordCount) * 2.0
     case 50..<CitabilityConstants.optimalWordCountMin:
         let range = Double(CitabilityConstants.optimalWordCountMin - 50)
-        let progress = Double(wordCount - 50) / range
+        let progress = range > 0 ? Double(wordCount - 50) / range : 0
         score = 60.0 + progress * 40.0
     case CitabilityConstants.optimalWordCountMin...CitabilityConstants.optimalWordCountMax:
         score = 100.0
     case (CitabilityConstants.optimalWordCountMax + 1)...250:
         let range = Double(250 - CitabilityConstants.optimalWordCountMax)
-        let progress = Double(wordCount - CitabilityConstants.optimalWordCountMax) / range
+        let progress = range > 0 ? Double(wordCount - CitabilityConstants.optimalWordCountMax) / range : 0
         score = 100.0 - progress * 30.0
     default:
         score = max(30.0, 70.0 - Double(wordCount - 250) / 5.0)
@@ -179,7 +187,7 @@ private func scoreUniquenessSignals(text: String, words: [String]) -> Double {
 
     // Numbers in text
     let numberPattern = #"\b\d+\b"#
-    if let regex = try? NSRegularExpression(pattern: numberPattern) {
+    if let regex = try? NSRegularExpression(pattern: numberPattern) { // silent: regex pattern is compile-time constant
         let range = NSRange(text.startIndex..., in: text)
         score += Double(regex.numberOfMatches(in: text, range: range)) * 10.0
     }
@@ -196,6 +204,7 @@ private func scoreUniquenessSignals(text: String, words: [String]) -> Double {
 
 /// Score a single text passage for AI citability across 5 dimensions.
 public struct ScorePassageCitabilityTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "score_passage_citability",
         description: """
@@ -225,8 +234,10 @@ public struct ScorePassageCitabilityTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -257,16 +268,16 @@ public struct ScorePassageCitabilityTool: MCPToolHandler, Sendable {
         let output = """
         Passage Citability Analysis
 
-        Composite Score: \(String(format: "%.1f", score.composite)) / 100
+        Composite Score: \(score.composite.formatted(.number.precision(.fractionLength(1)))) / 100
         Grade: \(score.grade)
         Word Count: \(score.wordCount) (optimal: \(CitabilityConstants.optimalWordCountMin)-\(CitabilityConstants.optimalWordCountMax))
 
         Dimension Scores:
-          Answer Block Quality: \(String(format: "%.1f", score.answerBlockQuality)) / 100 (weight: 30%)
-          Self-Containment:     \(String(format: "%.1f", score.selfContainment)) / 100 (weight: 25%)
-          Structural Readability: \(String(format: "%.1f", score.structuralReadability)) / 100 (weight: 20%)
-          Statistical Density:  \(String(format: "%.1f", score.statisticalDensity)) / 100 (weight: 15%)
-          Uniqueness Signals:   \(String(format: "%.1f", score.uniquenessSignals)) / 100 (weight: 10%)
+          Answer Block Quality: \(score.answerBlockQuality.formatted(.number.precision(.fractionLength(1)))) / 100 (weight: 30%)
+          Self-Containment:     \(score.selfContainment.formatted(.number.precision(.fractionLength(1)))) / 100 (weight: 25%)
+          Structural Readability: \(score.structuralReadability.formatted(.number.precision(.fractionLength(1)))) / 100 (weight: 20%)
+          Statistical Density:  \(score.statisticalDensity.formatted(.number.precision(.fractionLength(1)))) / 100 (weight: 15%)
+          Uniqueness Signals:   \(score.uniquenessSignals.formatted(.number.precision(.fractionLength(1)))) / 100 (weight: 10%)
         \(recommendations.isEmpty ? "" : "\nRecommendations:\n" + recommendations.map { "  • \($0)" }.joined(separator: "\n"))
         """
 
@@ -293,6 +304,7 @@ public struct ScorePassageCitabilityTool: MCPToolHandler, Sendable {
 
 /// Analyze an entire page by splitting into passages and scoring each.
 public struct AnalyzePageCitabilityTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "analyze_page_citability",
         description: """
@@ -323,8 +335,10 @@ public struct AnalyzePageCitabilityTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("text")
@@ -351,7 +365,8 @@ public struct AnalyzePageCitabilityTool: MCPToolHandler, Sendable {
         let scores = passages.map { scorePassageCitability($0) }
 
         let bestScore = scores.max(by: { $0.composite < $1.composite })
-        let avgScore = scores.isEmpty ? 0.0 : scores.reduce(0.0) { $0 + $1.composite } / Double(scores.count)
+        let scoreCount = Double(scores.count)
+        let avgScore = scoreCount > 0 ? scores.reduce(0.0) { $0 + $1.composite } / scoreCount : 0.0
         let overallGrade = citabilityGrade(for: avgScore)
 
         // Grade distribution
@@ -369,8 +384,8 @@ public struct AnalyzePageCitabilityTool: MCPToolHandler, Sendable {
         Page Citability Analysis
 
         Passages Analyzed: \(scores.count)
-        Best Passage Score: \(String(format: "%.1f", bestScore?.composite ?? 0)) / 100
-        Average Score: \(String(format: "%.1f", avgScore)) / 100
+        Best Passage Score: \((bestScore?.composite ?? 0).formatted(.number.precision(.fractionLength(1)))) / 100
+        Average Score: \(avgScore.formatted(.number.precision(.fractionLength(1)))) / 100
         Overall Grade: \(overallGrade)
 
         Grade Distribution:
@@ -386,7 +401,7 @@ public struct AnalyzePageCitabilityTool: MCPToolHandler, Sendable {
             for (index, element) in ranked {
                 let preview = String(passages[index].prefix(80))
                     .replacingOccurrences(of: "\n", with: " ")
-                output += "\n  #\(index + 1): \(String(format: "%.1f", element.composite)) (\(element.grade)) — \"\(preview)...\""
+                output += "\n  #\(index + 1): \(element.composite.formatted(.number.precision(.fractionLength(1)))) (\(element.grade)) — \"\(preview)...\""
             }
         }
 

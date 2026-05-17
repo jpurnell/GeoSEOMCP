@@ -15,6 +15,7 @@ public func getBrandPlatformTools() -> [any MCPToolHandler] {
 
 /// Calculate weighted brand authority score from platform scores.
 public struct CalculateBrandAuthorityScoreTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "calculate_brand_authority_score",
         description: """
@@ -41,8 +42,10 @@ public struct CalculateBrandAuthorityScoreTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("youtube_score")
@@ -63,14 +66,14 @@ public struct CalculateBrandAuthorityScoreTool: MCPToolHandler, Sendable {
         let output = """
         Brand Authority Score
 
-        Composite Score: \(String(format: "%.1f", composite)) / 100
+        Composite Score: \(composite.formatted(.number.precision(.fractionLength(1)))) / 100
 
         Platform Breakdown:
-          YouTube (25%):          \(String(format: "%.0f", youtube))
-          Reddit (25%):           \(String(format: "%.0f", reddit))
-          Wikipedia (20%):        \(String(format: "%.0f", wikipedia))
-          LinkedIn (15%):         \(String(format: "%.0f", linkedin))
-          Other Platforms (15%):  \(String(format: "%.0f", other))
+          YouTube (25%):          \(youtube.formatted(.number.precision(.fractionLength(0))))
+          Reddit (25%):           \(reddit.formatted(.number.precision(.fractionLength(0))))
+          Wikipedia (20%):        \(wikipedia.formatted(.number.precision(.fractionLength(0))))
+          LinkedIn (15%):         \(linkedin.formatted(.number.precision(.fractionLength(0))))
+          Other Platforms (15%):  \(other.formatted(.number.precision(.fractionLength(0))))
         """
 
         let result = GeoSEOResult(
@@ -94,6 +97,7 @@ public struct CalculateBrandAuthorityScoreTool: MCPToolHandler, Sendable {
 
 /// Score presence on a specific platform.
 public struct ScorePlatformPresenceTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "score_platform_presence",
         description: """
@@ -117,8 +121,10 @@ public struct ScorePlatformPresenceTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("platform")
@@ -184,12 +190,12 @@ public struct ScorePlatformPresenceTool: MCPToolHandler, Sendable {
         let output = """
         Platform Presence: \(platform)
 
-        Score: \(String(format: "%.0f", score)) / 100
+        Score: \(score.formatted(.number.precision(.fractionLength(0)))) / 100
 
         Metrics:
           Has Presence: Yes
-          Followers: \(followers >= 1 ? String(format: "%.0f", followers) : "N/A")
-          Engagement Rate: \(engagement > 0 ? String(format: "%.1f%%", engagement) : "N/A")
+          Followers: \(followers >= 1 ? followers.formatted(.number.precision(.fractionLength(0))) : "N/A")
+          Engagement Rate: \(engagement > 0 ? "\(engagement.formatted(.number.precision(.fractionLength(1))))%" : "N/A")
           Post Frequency: \(frequency)
         """
 
@@ -214,6 +220,7 @@ public struct ScorePlatformPresenceTool: MCPToolHandler, Sendable {
 
 /// Generate search URLs for brand verification across platforms.
 public struct GeneratePlatformSearchUrlsTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "generate_platform_search_urls",
         description: """
@@ -232,8 +239,10 @@ public struct GeneratePlatformSearchUrlsTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("brand_name")
@@ -274,6 +283,7 @@ public struct GeneratePlatformSearchUrlsTool: MCPToolHandler, Sendable {
 
 /// Score platform readiness based on a checklist.
 public struct ScorePlatformReadinessTool: MCPToolHandler, Sendable {
+    /// MCP tool definition.
     public let tool = MCPTool(
         name: "score_platform_readiness",
         description: """
@@ -301,8 +311,10 @@ public struct ScorePlatformReadinessTool: MCPToolHandler, Sendable {
         )
     )
 
+    /// Creates a new instance.
     public init() {}
 
+    /// Executes the tool with the given arguments.
     public func execute(arguments: [String: AnyCodable]?) async throws -> MCPToolCallResult {
         guard let args = arguments else {
             throw ToolError.missingRequiredArgument("platform")
@@ -335,7 +347,7 @@ public struct ScorePlatformReadinessTool: MCPToolHandler, Sendable {
         let output = """
         Platform Readiness: \(platformName)
 
-        Score: \(String(format: "%.0f", score)) / 100
+        Score: \(score.formatted(.number.precision(.fractionLength(0)))) / 100
         Items Passed: \(passed) / \(total)
 
         \(score >= 80 ? "Excellent readiness for \(platformName)." :
