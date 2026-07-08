@@ -1,4 +1,5 @@
 // swift-tools-version: 6.2
+// legibility:description: A Model Context Protocol (MCP) server providing 29 tools for Generative Engine Optimization (GEO) analysis.
 import PackageDescription
 
 let package = Package(
