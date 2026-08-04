@@ -8,3 +8,5 @@ DerivedData/
 Package.resolved
 .claude/
 development-guidelines/
+/.claude/skills/
+/development-guidelines.pre-v2/
