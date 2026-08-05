@@ -1,145 +1,75 @@
-# [PROJECT_NAME] Master Plan
+# GeoSEOMCP Master Plan
 
 **Purpose:** Source of truth for project vision, architecture, and goals.
+
+> **Provenance:** Written 2026-08-05 from README, `Package.swift`, and the source tree.
 
 ---
 
 ## Project Overview
 
 ### Mission
-[Describe the core mission of this project - what problem does it solve?]
+
+An MCP server providing 29 tools for **Generative Engine Optimization** — analysing how
+well a page is understood, cited, and retrieved by AI systems rather than ranked by search
+engines.
 
 ### Target Users
-- [User type 1]
-- [User type 2]
-- [User type 3]
+- Anyone whose content should be found and cited by AI assistants
+- Agents auditing a site's machine-readability
+- Authors deciding whether a page is citable in the form an LLM actually consumes
 
 ### Key Differentiators
-- [What makes this project unique?]
-- [Why would someone choose this over alternatives?]
+- **Optimises for citation, not ranking.** Classic SEO targets a results page; this targets
+  being quoted correctly by a model that read the page once
+- **Knows the AI crawlers specifically** — `AICrawlerRegistry`, `AICrawler`, `AIPlatform`,
+  and access analysis, because a `robots.txt` that admits Googlebot and excludes GPTBot is
+  a decision most tooling will not surface
+- **Passage-level citability**, not page-level scores — the unit a model quotes is a passage
 
 ---
 
 ## Architecture
 
-### Technology Stack
-- **Language:** [Swift 6.0 / Python / etc.]
-- **Frameworks:** [List key frameworks]
-- **Build System:** [SPM / CocoaPods / etc.]
-- **Testing:** [Swift Testing / XCTest / etc.]
+- **Language:** Swift 6 · **Build:** SwiftPM · **Testing:** Swift Testing
+- **Dependencies:** `SwiftMCPServer`, `swift-sdk`
+- **Products:** `GeoSEOMCP` (library), `geoseo-mcp-server` (executable)
 
-### Module Structure
+Transport, framing, and authentication come from
+[`SwiftMCPServer`](../../SwiftMCPServer/project/master_plan.md); this package supplies
+domain tools only.
 
-```
-[PROJECT_NAME]/
-├── Sources/
-│   └── [PROJECT_NAME]/
-│       ├── [Module1]/
-│       ├── [Module2]/
-│       └── [PROJECT_NAME].docc/
-├── Tests/
-│   └── [PROJECT_NAME]Tests/
-└── Package.swift
-```
-
-### Key Types
-
-| Type | Purpose |
-|------|---------|
-| `[Type1]` | [Description] |
-| `[Type2]` | [Description] |
-| `[Type3]` | [Description] |
-
-> **Full capability inventory:** See [Capability Map](../development-guidelines/strategies/CAPABILITY_MAP.md) for the complete feature area inventory with interfaces and application domains.
+16 source files, 14 test files — near parity, appropriate for a package that is mostly
+analysis logic.
 
 ---
 
 ## Current Status
 
-### What's Working
-- [x] [Feature 1]
-- [x] [Feature 2]
-- [ ] [Feature 3 - in progress]
+- [x] 29 tools across crawler access, content statistics, heading structure, citability,
+      schema validation, and platform readiness
 
-### Known Issues
-- [Issue 1]
-- [Issue 2]
+### Priorities
+**[NEEDS INPUT]**
 
-### Current Priorities
-1. [Priority 1]
-2. [Priority 2]
-3. [Priority 3]
+### A connection worth noting
 
----
-
-## Collaboration Principles
-
-### AI as Sparring Partner, Not Oracle
-
-AI proposes; the human interrogates. High AI confidence triggers harder questions, not faster acceptance.
-
-- **Interrogate confident outputs.** When the AI states something with certainty, ask for the counterargument before accepting.
-- **Demand counterarguments.** Before locking in an approach, require an explicit case for the strongest alternative.
-- **Sit with discomfort.** Resist the pull to take the first plausible answer. Working through a hard call manually preserves the judgment that lets you catch the AI when it's wrong.
-
-This principle is operationalized in the **Adversarial Review** step of `design_proposal.md` and is the canonical reference for any other doc that invokes it.
-
----
+The `Ignite` fork's structured-data work and this server's schema analysis are two halves of
+one pipeline: generate pages carrying machine-readable schema, then audit whether AI systems
+can actually use it. Neither plan currently states that as a goal. **[NEEDS INPUT]** —
+whether it is one.
 
 ## Quality Standards
 
-### Code Quality
-- All code follows `coding_rules.md`
-- Test coverage target: [80%+]
-- Documentation for all public APIs
-- No warnings in build output
-
-### Documentation Quality
-- DocC comments for all public functions
-- Usage examples in documentation
-- Articles for complex topics
-
----
-
-## Error Registry
-
-> **Purpose:** Single source of truth for all error types in the project. Consult this
-> registry during the Design Proposal Phase to ensure new error cases don't duplicate
-> existing ones. Update it whenever new error types are introduced.
-
-### Error Types
-
-| Error Enum | Case | When Thrown | Module |
-|------------|------|------------|--------|
-| `ProjectError` | `.emptyInput` | Collection is empty when non-empty is required | [Module] |
-| `ProjectError` | `.invalidInput(message:)` | Parameter fails validation | [Module] |
-| `ProjectError` | `.divisionByZero(context:)` | Denominator is zero or near-zero | [Module] |
-
-*Add new error cases here as they are introduced. Remove this example content and replace with your project's actual errors.*
-
-### Error Design Principles
-
-- **One error enum per domain boundary** — avoid proliferating error types
-- **Descriptive associated values** — include context (parameter name, expected range, etc.)
-- **No overlapping cases** — `invalidParameter` and `outOfRange` should not coexist if they mean the same thing
-- **Consult this registry** before creating new error cases in a Design Proposal
-
----
+`coding_rules.md`, Swift 6 strict concurrency, zero warnings, DocC on public types.
+**Analysis runs against fixed HTML fixtures, never live sites** — a test that fetches a real
+page fails when that page changes, and reports someone else's edit as your regression.
 
 ## Roadmap
 
-### Phase 1: [Name]
-- [ ] [Goal 1]
-- [ ] [Goal 2]
-
-### Phase 2: [Name]
-- [ ] [Goal 1]
-- [ ] [Goal 2]
-
-### Future Considerations
-- [Potential future direction 1]
-- [Potential future direction 2]
+**[NEEDS INPUT]** — the crawler registry is the part most exposed to the outside world;
+new platforms appear and user-agent strings change, so it needs a maintenance story.
 
 ---
 
-**Last Updated:** [Date]
+**Last Updated:** 2026-08-05
