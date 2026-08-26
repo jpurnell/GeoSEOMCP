@@ -1,34 +1,32 @@
-# Handoff: GeoSEO MCP Quality Gate & swift-sdk Fork
+# Handoff: GeoSEO MCP
 
-**Date:** 2026-05-16
-**Status:** Quality gate passing (0 errors, 0 warnings). Upstream PR pending.
+**Date:** 2026-08-26
+**Status:** Quality gate passing (0 errors, 0 warnings, 40 of 45 checkers). Upstream PR still pending.
 
-## What Was Done
+## Current Session (2026-08-26)
 
-1. **Quality gate remediation** — Took the project from 87 errors + 219 warnings to fully clean across all 24 auditors:
-   - Replaced `String(format:)` with `.formatted()` API (fp-safety)
-   - Added `///` documentation to all 277 public symbols (doc-coverage)
-   - Added `// silent:` annotations on intentional `try?` usage (safety)
-   - Added `// LIVE:` annotations on domain constants consumed by MCP clients (unreachable)
-   - Fixed floating-point division zero guards (fp-safety)
-   - Fixed weak test assertions — float equality tolerance, assertTrue → assertEqual (test-quality)
-   - Bumped swift-tools-version from 6.0 to 6.2 (swift-version)
-   - Pinned SwiftMCPServer to version tag instead of branch (dependency-audit)
-   - Added README.md and CHANGELOG.md (release-readiness)
+Cleared two quality-gate findings. Full detail in
+`05_SUMMARIES/05_01_FIX_SUMMARIES/2026-08-26_CRLFSafetyAndDocCCatalogue.md`.
 
-2. **swift-sdk fork** — Created `jpurnell/swift-sdk` with a fix for `SendingRisksDataRace` diagnostics in `NetworkTransport.swift` under Swift 6.3 strict concurrency:
-   - Pattern: `@MainActor private final class SendOnce: Sendable` guarding continuation resume flags
-   - Branch: `fix/swift6-sending-data-race`
-   - Tag: `0.10.3`
-   - Both GeoSEOMCP and SwiftMCPServer now resolve against this fork
+1. **`safety` error** — `parseRobotsTxt` split on `CharacterSet.newlines`, which treats a
+   CRLF as two separators. Now splits on `\.isNewline`. No behaviour change; the parser
+   already skipped the empty elements. Only occurrence in the package.
 
-3. **SwiftMCPServer updates** — Pointed at fork, fixed test helper for 0.10.x SDK compatibility, tagged 1.1.0 and 1.1.1.
+2. **`doc-lint` error (pre-existing)** — the package had no DocC catalogue, so the doc
+   checkers had nothing to examine and reported that as a failure. Added
+   `Sources/GeoSEOMCP/GeoSEOMCP.docc/GeoSEOMCP.md`: 84 public symbols curated into 12
+   topic sections, all links resolving. This also cleared a 52-occurrence
+   `doc-lint.no-coverage` consistency cluster (score 0.75 → 1.00).
+
+**Do not "simplify" `resources: [.copy("GeoSEOMCP.docc")]` out of `Package.swift`.** It
+looks redundant but is not — see the Context Loss Warning in the session summary.
 
 ## What Needs To Happen Next
 
-### Tomorrow: Submit Upstream PR
+### Submit Upstream PR
 
-The fix is ready at `/tmp/swift-sdk-fix`:
+The fix is ready at `/tmp/swift-sdk-fix` — **verify this still exists**, `/tmp` does not
+survive reboots. If it is gone, the branch is pushed at `jpurnell/swift-sdk`.
 
 ```bash
 cd /tmp/swift-sdk-fix
@@ -43,8 +41,6 @@ gh pr create \
 ```
 
 ### After Upstream Merge: Revert to Official URL
-
-Once the fix lands in an official release:
 
 1. **GeoSEOMCP** `Package.swift`:
    ```swift
@@ -64,13 +60,27 @@ Once the fix lands in an official release:
 
 3. Tag a new SwiftMCPServer release, update GeoSEOMCP's pin accordingly.
 
-### Deployment Note
+### Open Planning Questions
 
-The production server (roseclub.org) runs Swift 6.0.3. The swift-tools-version bump to 6.2 means the server toolchain needs updating before the next deploy. Verify with:
+`project/master_plan.md` still carries three `[NEEDS INPUT]` markers: Priorities, the
+Roadmap (specifically a maintenance story for the crawler registry, which is the part most
+exposed to outside change), and whether the `Ignite` structured-data work and this
+server's schema analysis are meant to be one pipeline.
+
+### Deployment Note — Needs Verification
+
+The 2026-05-16 handoff recorded the production server at Swift 6.0.3 and flagged that the
+`swift-tools-version` bump to 6.2 would require a toolchain update before the next deploy.
+Global project notes now record roseclub.org at **6.3.3**, which would mean this was
+resolved — but the two records disagree and neither was checked this session. Confirm
+before deploying:
 
 ```bash
 ssh roseclub.org "swift --version"
 ```
+
+Local toolchain is Swift 6.4; the drift between local and server is real and worth
+re-checking each deploy.
 
 ## File Locations
 
@@ -81,3 +91,4 @@ ssh roseclub.org "swift --version"
 | swift-sdk fork (local) | `/tmp/swift-sdk-fix` |
 | swift-sdk fork (remote) | `https://github.com/jpurnell/swift-sdk` |
 | Quality gate config | `.quality-gate.yml` |
+| Session summaries | `05_SUMMARIES/05_01_FIX_SUMMARIES/` |

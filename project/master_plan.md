@@ -48,6 +48,12 @@ analysis logic.
 
 - [x] 29 tools across crawler access, content statistics, heading structure, citability,
       schema validation, and platform readiness
+- [x] DocC catalogue at `Sources/GeoSEOMCP/GeoSEOMCP.docc` — all 84 public symbols
+      curated into 12 topic sections. Satisfies the "DocC on public types" bar below,
+      which until 2026-08-26 was stated but not met: there was no catalogue at all, so
+      the doc checkers had nothing to examine and reported that as a failure rather than
+      a pass
+- [x] Quality gate at 0 errors / 0 warnings across 40 of 45 checkers
 
 ### Priorities
 **[NEEDS INPUT]**
@@ -61,7 +67,8 @@ whether it is one.
 
 ## Quality Standards
 
-`coding_rules.md`, Swift 6 strict concurrency, zero warnings, DocC on public types.
+`coding_rules.md`, Swift 6 strict concurrency, zero warnings, DocC on public types —
+the catalogue is the thing that makes the last of those checkable rather than aspirational.
 **Analysis runs against fixed HTML fixtures, never live sites** — a test that fetches a real
 page fails when that page changes, and reports someone else's edit as your regression.
 
@@ -72,4 +79,6 @@ new platforms appear and user-agent strings change, so it needs a maintenance st
 
 ---
 
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-26 — reconciled Current Status against shipped code: added the
+DocC catalogue and the quality-gate standing. The `[NEEDS INPUT]` markers under Priorities,
+Roadmap, and the `Ignite` connection are unchanged and still open.

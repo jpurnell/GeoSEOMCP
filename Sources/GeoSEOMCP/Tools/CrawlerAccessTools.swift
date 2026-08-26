@@ -33,7 +33,7 @@ public func parseRobotsTxt(_ content: String) -> [String: [RobotsTxtDirective]] 
     var result: [String: [RobotsTxtDirective]] = [:]
     var currentAgents: [String] = []
 
-    for line in content.components(separatedBy: .newlines) {
+    for line in content.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
 
         // Skip comments and empty lines

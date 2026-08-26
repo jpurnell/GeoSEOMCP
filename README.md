@@ -75,10 +75,25 @@ swift run geoseo-mcp-server
 ```
 Sources/
   GeoSEOMCP/          — Library target (tools, constants, text analysis)
+    GeoSEOMCP.docc/   — DocC catalogue (landing page, curated topics)
   GeoSEOMCPServer/    — Executable target (server entry point)
 Tests/
   GeoSEOMCPTests/     — 183 tests across domain, registration, and contract suites
 ```
+
+## Documentation
+
+The library ships a DocC catalogue covering the full public API — the 29 tool handlers
+plus the plain-Swift scoring functions underneath them, organized by analysis dimension.
+
+```bash
+swift package --disable-sandbox preview-documentation --target GeoSEOMCP
+```
+
+Every tool's logic is also callable directly, without MCP: `scorePassageCitability(_:)`,
+`parseRobotsTxt(_:)`, `fleschReadingEase(totalWords:totalSentences:totalSyllables:)`, and
+so on. No tool fetches a URL — callers supply the page text, robots.txt body, or response
+headers, which keeps scoring deterministic and offline.
 
 ## MCP Client Configuration
 

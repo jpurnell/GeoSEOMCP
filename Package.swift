@@ -22,7 +22,11 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftMCPServer", package: "SwiftMCPServer"),
                 .product(name: "MCP", package: "swift-sdk"),
-            ]
+            ],
+            // SwiftPM does not auto-handle .docc catalogues here, so declare it
+            // explicitly. `exclude` would also silence the warning, but it drops
+            // the catalogue from the DocC build entirely.
+            resources: [.copy("GeoSEOMCP.docc")]
         ),
         .executableTarget(
             name: "GeoSEOMCPServer",
