@@ -67,20 +67,22 @@ Roadmap (specifically a maintenance story for the crawler registry, which is the
 exposed to outside change), and whether the `Ignite` structured-data work and this
 server's schema analysis are meant to be one pipeline.
 
-### Deployment Note — Needs Verification
+### Deployment Note — Resolved
 
-The 2026-05-16 handoff recorded the production server at Swift 6.0.3 and flagged that the
-`swift-tools-version` bump to 6.2 would require a toolchain update before the next deploy.
-Global project notes now record roseclub.org at **6.3.3**, which would mean this was
-resolved — but the two records disagree and neither was checked this session. Confirm
-before deploying:
+roseclub.org runs **Swift 6.3.3** (confirmed 2026-08-26). This clears the blocker the
+2026-05-16 handoff raised: that handoff recorded the server at 6.0.3 and flagged the
+`swift-tools-version` bump to 6.2 as needing a server toolchain update first. The server
+has since been updated, 6.3.3 satisfies the 6.2 requirement, and **there is no deployment
+blocker**. The 6.0.3 figure is historical — disregard it.
+
+Toolchain drift is still real and still worth a check each deploy: local is 6.4, server is
+6.3.3. That gap is what the `jpurnell/swift-sdk` fork exists to bridge — the
+`SendingRisksDataRace` fix is what makes a clean build possible under 6.3's stricter
+concurrency checking.
 
 ```bash
 ssh roseclub.org "swift --version"
 ```
-
-Local toolchain is Swift 6.4; the drift between local and server is real and worth
-re-checking each deploy.
 
 ## File Locations
 
