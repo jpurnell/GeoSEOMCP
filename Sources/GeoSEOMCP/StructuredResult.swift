@@ -137,7 +137,12 @@ extension MCPToolCallResult {
         }
 
         return MCPToolCallResult(
-            CallTool.Result(content: [.text(jsonString), .text(text)], isError: false)
+            CallTool.Result(
+                content: [
+                    .text(text: jsonString, annotations: nil, _meta: nil),
+                    .text(text: text, annotations: nil, _meta: nil),
+                ],
+                isError: false)
         )
     }
 }
