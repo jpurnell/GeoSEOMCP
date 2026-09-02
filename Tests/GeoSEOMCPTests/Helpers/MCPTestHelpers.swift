@@ -19,7 +19,7 @@ extension MCPToolCallResult {
     var text: String {
         // Structured results: [json, richText] — return richText
         if result.content.count >= 2 {
-            if case .text(let string) = result.content[1] {
+            if case .text(let string, _, _) = result.content[1] {
                 return string
             }
         }
@@ -28,7 +28,7 @@ extension MCPToolCallResult {
             return ""
         }
         switch firstContent {
-        case .text(let string):
+        case .text(let string, _, _):
             return string
         case .image, .resource, .audio:
             return ""
@@ -40,7 +40,7 @@ extension MCPToolCallResult {
     /// Extract the structured JSON string from the first content block.
     var jsonText: String? {
         guard result.content.count >= 2,
-              case .text(let string) = result.content.first else {
+              case .text(let string, _, _) = result.content.first else {
             return nil
         }
         return string

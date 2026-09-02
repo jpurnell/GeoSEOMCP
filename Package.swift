@@ -12,8 +12,12 @@ let package = Package(
         .executable(name: "geoseo-mcp-server", targets: ["GeoSEOMCPServer"])
     ],
     dependencies: [
-        .package(url: "https://github.com/jpurnell/SwiftMCPServer.git", from: "1.1.0"),
-        .package(url: "https://github.com/jpurnell/swift-sdk.git", exact: "0.10.3"),
+        .package(url: "https://github.com/jpurnell/SwiftMCPServer.git", from: "2.0.0"),
+        // The fork, pinned exactly and at the same URL SwiftMCPServer resolves. SwiftPM
+        // derives identity from the URL's last path component, so naming the repository's
+        // other URL here yields two identities for one repository and a "multiple similar
+        // targets 'MCP'" failure that no version range fixes.
+        .package(url: "https://github.com/jpurnell/swift-mcp-sdk.git", exact: "2026.7.28"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.3.0")
     ],
     targets: [
@@ -21,7 +25,7 @@ let package = Package(
             name: "GeoSEOMCP",
             dependencies: [
                 .product(name: "SwiftMCPServer", package: "SwiftMCPServer"),
-                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "MCP", package: "swift-mcp-sdk"),
             ],
             // SwiftPM does not auto-handle .docc catalogues here, so declare it
             // explicitly. `exclude` would also silence the warning, but it drops
