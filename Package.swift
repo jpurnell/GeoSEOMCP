@@ -12,7 +12,7 @@ let package = Package(
         .executable(name: "geoseo-mcp-server", targets: ["GeoSEOMCPServer"])
     ],
     dependencies: [
-        .package(url: "https://github.com/jpurnell/SwiftMCPServer.git", from: "4.4.0"),
+        .package(url: "https://github.com/jpurnell/SwiftMCPServer.git", from: "4.4.1"),
         // The fork, pinned exactly and at the same URL SwiftMCPServer resolves. SwiftPM
         // derives identity from the URL's last path component, so naming the repository's
         // other URL here yields two identities for one repository and a "multiple similar
