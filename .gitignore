@@ -5,7 +5,9 @@ xcuserdata/
 DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
-Package.resolved
+# Package.resolved is tracked: this is a deployed executable, and the
+# lockfile is what makes a shipped build reproducible. See
+# development-guidelines/rules/release_checklist.md 1.8.
 .claude/
 development-guidelines/
 /.claude/skills/
