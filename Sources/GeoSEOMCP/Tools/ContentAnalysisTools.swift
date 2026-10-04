@@ -270,13 +270,34 @@ public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
         let modifier = args.getDoubleOptional("modifier") ?? 0.0
 
         let baseScore = experience + expertise + authoritativeness + trustworthiness
-        let finalScore = min(max(baseScore + modifier, 0), 110)
+        let total = baseScore + modifier
 
+        // A NaN is false against every threshold below, so it would take the trailing
+        // `else` and be graded "Very Poor"; an infinity would clamp to a confident 0 or
+        // 110. Neither is a rating. The sum is non-finite exactly when a rating is, or
+        // when finite ratings overflow, so one test of it covers all five — and the
+        // refusal names the argument the caller has to correct.
+        guard total.isFinite else {
+            let ratings = [
+                ("experience", experience), ("expertise", expertise),
+                ("authoritativeness", authoritativeness), ("trustworthiness", trustworthiness),
+                ("modifier", modifier),
+            ]
+            guard let culprit = ratings.first(where: { !$0.1.isFinite }) else {
+                throw ToolError.invalidArguments("the ratings are too large to add up")
+            }
+            throw ToolError.invalidArguments("\(culprit.0) must be a finite number")
+        }
+        let finalScore = min(max(total, 0), 110)
+
+        // Graded on the sum the guard above has just shown to be a number. Clamping to
+        // 0...110 moves a score across none of these thresholds, so the grade is the
+        // same as grading `finalScore`.
         let grade: String
-        if finalScore >= 90 { grade = "Excellent" }
-        else if finalScore >= 75 { grade = "Good" }
-        else if finalScore >= 50 { grade = "Fair" }
-        else if finalScore >= 25 { grade = "Poor" }
+        if total >= 90 { grade = "Excellent" }
+        else if total >= 75 { grade = "Good" }
+        else if total >= 50 { grade = "Fair" }
+        else if total >= 25 { grade = "Poor" }
         else { grade = "Very Poor" }
 
         let output = """

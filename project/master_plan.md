@@ -54,6 +54,9 @@ analysis logic.
       the doc checkers had nothing to examine and reported that as a failure rather than
       a pass
 - [x] Quality gate at 0 errors / 0 warnings across 40 of 45 checkers
+- [x] Built on SwiftMCPServer 5.0.0 (2026-10-04): loopback bind by default, so the public
+      deployment must pass `--host 0.0.0.0`; `ResourceError` conforms to
+      `CallerVisibleError` so an unknown resource URI is still answered by name
 
 ### Priorities
 **[NEEDS INPUT]**
@@ -79,6 +82,11 @@ new platforms appear and user-agent strings change, so it needs a maintenance st
 
 ---
 
-**Last Updated:** 2026-08-26 — reconciled Current Status against shipped code: added the
-DocC catalogue and the quality-gate standing. The `[NEEDS INPUT]` markers under Priorities,
-Roadmap, and the `Ignite` connection are unchanged and still open.
+**Last Updated:** 2026-10-04 — SwiftMCPServer 5.0.0. Added the migration to Current Status.
+The architecture line is unchanged in substance — transport, framing, and authentication
+still come from `SwiftMCPServer` — but two of that package's defaults moved and are now
+this server's behaviour: the HTTP listener is loopback-only until `--host` says otherwise,
+and an error reaches the caller only if its type conforms to `CallerVisibleError`. The
+`[NEEDS INPUT]` markers under Priorities, Roadmap, and the `Ignite` connection are
+unchanged and still open. (Previous: 2026-08-26 — reconciled Current Status against shipped
+code: added the DocC catalogue and the quality-gate standing.)

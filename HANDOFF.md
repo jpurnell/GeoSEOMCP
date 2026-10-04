@@ -60,6 +60,15 @@ gh pr create \
 
 3. Tag a new SwiftMCPServer release, update GeoSEOMCP's pin accordingly.
 
+### Before the next deploy: `--host 0.0.0.0` (added 2026-10-04)
+
+This package is on SwiftMCPServer 5.0.0, whose HTTP listener binds `127.0.0.1` unless told
+otherwise. The public service on roseclub.org (port 8081) must have `--host 0.0.0.0` added
+to its launchd arguments **in the same deploy that installs the new binary** — a 5.0.0
+binary started with the 4.x arguments comes up healthy and unreachable. The launch
+configuration is not in this repository, so nothing here makes that change; see README
+"Running over HTTP". The live service was not touched by the migration.
+
 ### Open Planning Questions
 
 `project/master_plan.md` still carries three `[NEEDS INPUT]` markers: Priorities, the

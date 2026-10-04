@@ -105,6 +105,62 @@ struct EEATScoreToolTests {
         #expect(result.text.contains("110"))
     }
 
+    /// A NaN fails every `>=` in the grading chain and falls to the trailing `else`, so
+    /// before this was refused a non-finite rating was graded "Very Poor" — a verdict on
+    /// a score that was never a number.
+    @Test("A non-finite rating is refused by name, not graded",
+          arguments: ["experience", "expertise", "authoritativeness", "trustworthiness", "modifier"],
+          [Double.nan, Double.infinity, -Double.infinity])
+    func testNonFiniteRatingIsRefused(key: String, value: Double) async throws {
+        var arguments: [String: AnyCodable] = [
+            "experience": AnyCodable(20.0),
+            "expertise": AnyCodable(20.0),
+            "authoritativeness": AnyCodable(20.0),
+            "trustworthiness": AnyCodable(20.0),
+            "modifier": AnyCodable(0.0),
+        ]
+        arguments[key] = AnyCodable(value)
+        let thrown = await #expect(throws: ToolError.self) {
+            try await tool.execute(arguments: arguments)
+        }
+        #expect(thrown?.callerMessage == "Invalid arguments: \(key) must be a finite number")
+    }
+
+    @Test("Finite ratings whose sum overflows are refused, not clamped to a perfect score")
+    func testOverflowingRatingsAreRefused() async throws {
+        let huge = AnyCodable(Double.greatestFiniteMagnitude)
+        let arguments: [String: AnyCodable] = [
+            "experience": huge, "expertise": huge,
+            "authoritativeness": AnyCodable(0.0), "trustworthiness": AnyCodable(0.0),
+        ]
+        let thrown = await #expect(throws: ToolError.self) {
+            try await tool.execute(arguments: arguments)
+        }
+        #expect(thrown?.callerMessage == "Invalid arguments: the ratings are too large to add up")
+    }
+
+    @Test("A sum outside 0...110 is clamped for display and graded the same either side",
+          arguments: [(30.0, "Final Score: 110.0 / 110", "Assessment: Excellent"),
+                      (-5.0, "Final Score: 0.0 / 110", "Assessment: Very Poor")])
+    func testOutOfRangeSumIsClamped(rating: Double, score: String, grade: String) async throws {
+        let value = AnyCodable(rating)
+        let result = try await tool.execute(arguments: [
+            "experience": value, "expertise": value, "authoritativeness": value, "trustworthiness": value,
+        ])
+        #expect(result.text.contains(score))
+        #expect(result.text.contains(grade))
+    }
+
+    @Test("Finite ratings are graded exactly as before")
+    func testFiniteRatingsStillGraded() async throws {
+        let result = try await tool.execute(arguments: argsFromJSON("""
+        {"experience": 20, "expertise": 20, "authoritativeness": 20, "trustworthiness": 20, "modifier": -5}
+        """))
+        #expect(!result.isError)
+        #expect(result.text.contains("Final Score: 75.0 / 110"))
+        #expect(result.text.contains("Assessment: Good"))
+    }
+
     @Test("Missing argument throws error")
     func testMissingArgument() async throws {
         await #expect(throws: (any Error).self) {
