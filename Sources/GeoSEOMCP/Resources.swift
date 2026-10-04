@@ -177,6 +177,14 @@ public enum ResourceError: Error, LocalizedError {
     }
 }
 
+/// `ResourceError` is written for the caller: its only message repeats the URI the caller
+/// asked for and says nothing about the server. SwiftMCPServer 5 withholds any error that
+/// does not say so, answering with a generic sentence and a reference id instead.
+extension ResourceError: CallerVisibleError {
+    /// The message returned to the MCP client, byte for byte.
+    public var callerMessage: String { errorDescription ?? "Resource not found." }
+}
+
 // MARK: - Documentation Content
 
 private let geoOverviewDoc = """
