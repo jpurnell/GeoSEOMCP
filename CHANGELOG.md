@@ -46,10 +46,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`calculate_eeat_score` graded a rating that was not a number.** A NaN is false against
   every threshold in the grading chain, so it fell to the trailing `else` and came back
   as `Final Score: NaN / 110 — Very Poor`; an infinity clamped to a confident 0 or 110.
-  Each of the five ratings is now checked, and a non-finite one is refused as
-  `Invalid arguments: <name> must be a finite number`. JSON cannot carry these values, so
+  The sum is now tested before it is graded, and a non-finite rating is refused as
+  `Invalid arguments: <name> must be a finite number` (finite ratings that overflow as
+  `Invalid arguments: the ratings are too large to add up`). JSON cannot carry these values, so
   no client over the wire could have sent one; a caller of the handler in-process could.
-  Found by the gate's `fp-safety` checker (`fallback.classification-omits-nan`), which
+  Found by the gate's `fallback` checker (`fallback.classification-omits-nan`), which
   was reporting it as a warning on `main`
 - SendingRisksDataRace diagnostics under Swift 6.3 strict concurrency
 - Floating-point division zero guards in citability scoring

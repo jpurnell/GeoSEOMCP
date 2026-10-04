@@ -102,7 +102,7 @@ Sources/
     GeoSEOMCP.docc/   — DocC catalogue (landing page, curated topics)
   GeoSEOMCPServer/    — Executable target (server entry point)
 Tests/
-  GeoSEOMCPTests/     — 189 tests across domain, registration, contract, and error-disclosure suites
+  GeoSEOMCPTests/     — 191 tests across domain, registration, contract, and error-disclosure suites
 ```
 
 ## Documentation
