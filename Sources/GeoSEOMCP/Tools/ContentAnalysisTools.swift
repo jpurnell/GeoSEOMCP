@@ -269,6 +269,18 @@ public struct CalculateEEATScoreTool: MCPToolHandler, Sendable {
         let trustworthiness = try args.getDouble("trustworthiness")
         let modifier = args.getDoubleOptional("modifier") ?? 0.0
 
+        // A NaN is false against every threshold below, so it would take the trailing
+        // `else` and be graded "Very Poor"; an infinity would clamp to a confident 0 or
+        // 110. Neither is a rating, so each is refused by the name the caller gave it.
+        let ratings = [
+            ("experience", experience), ("expertise", expertise),
+            ("authoritativeness", authoritativeness), ("trustworthiness", trustworthiness),
+            ("modifier", modifier),
+        ]
+        for (name, value) in ratings where !value.isFinite {
+            throw ToolError.invalidArguments("\(name) must be a finite number")
+        }
+
         let baseScore = experience + expertise + authoritativeness + trustworthiness
         let finalScore = min(max(baseScore + modifier, 0), 110)
 
