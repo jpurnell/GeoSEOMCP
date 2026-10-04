@@ -21,6 +21,30 @@ Run the server:
 swift run geoseo-mcp-server
 ```
 
+### Running over HTTP
+
+With no arguments the server speaks MCP over stdio. `--http <port>` starts the HTTP
+transport instead, and as of SwiftMCPServer 5.0.0 that listener binds `127.0.0.1` — this
+machine only — unless it is told otherwise:
+
+```bash
+# Local: reachable at localhost only. Right for development, and for a server that
+# sits behind a reverse proxy on the same machine.
+geoseo-mcp-server --http 8081
+
+# Public: the deployment on roseclub.org is reached from other machines, so it has to
+# ask for every interface. Without --host 0.0.0.0 it starts, logs
+# "Listening on loopback only", and is unreachable from outside.
+geoseo-mcp-server --http 8081 --host 0.0.0.0
+```
+
+Authentication is required either way: with no key configured every request is refused.
+Create one with `geoseo-mcp-server --generate-key`, or supply `MCP_API_KEYS`.
+
+When a call fails, the caller sees the message only if it was written for them — an
+invalid argument, an unknown resource URI. Anything else is answered with a generic
+sentence and a reference id, and the detail is in the server's log under that id.
+
 ## Tools
 
 ### Citability (2 tools)
@@ -78,7 +102,7 @@ Sources/
     GeoSEOMCP.docc/   — DocC catalogue (landing page, curated topics)
   GeoSEOMCPServer/    — Executable target (server entry point)
 Tests/
-  GeoSEOMCPTests/     — 183 tests across domain, registration, and contract suites
+  GeoSEOMCPTests/     — 189 tests across domain, registration, contract, and error-disclosure suites
 ```
 
 ## Documentation
