@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Security
+- **SwiftMCPServer 5.0.2** (was 5.0.1), which moves its exact swift-oauth pin from
+  1.0.0-beta.6 to 1.0.0-beta.7. No SwiftMCPServer source changed, and nothing in this
+  package touches the OAuth API, so no source change was needed here. What it changes for
+  a deployment that runs with OAuth enabled:
+  - **The token database is migrated on first open, one way.** Client secrets are hashed
+    at rest (schema 7) and each client's `application_type` is stored (schema 8). Once a
+    5.0.2 build has opened the database, a 5.0.1 build (swift-oauth beta.6) cannot read
+    it. **Rolling back means restoring the database from a copy taken before the
+    upgrade** — take that copy at deploy time; this repository holds no deploy script.
+  - `/authorize` defaults to the deployment's `scopesSupported`. SwiftMCPServer passes
+    `MCPServer.mcpScopes`, the same three MCP scopes as before, so nothing changes.
+  - The `client_credentials` grant is opt-in and off under `.core`.
 - **SwiftMCPServer 5.0.0** (was 4.4.3). A security release of the package this server is
   built on, and a breaking one. What it changes here:
   - **The HTTP listener binds `127.0.0.1` unless asked for more.** Under 4.x the address
