@@ -35,7 +35,7 @@ geoseo-mcp-server --http 8081
 # Public: the deployment on roseclub.org is reached from other machines, so it has to
 # ask for every interface. Without --host 0.0.0.0 it starts, logs
 # "Listening on loopback only", and is unreachable from outside.
-geoseo-mcp-server --http 8081 --host 0.0.0.0
+geoseo-mcp-server --http 9081 --host 0.0.0.0
 ```
 
 Authentication is required either way: with no key configured every request is refused.
