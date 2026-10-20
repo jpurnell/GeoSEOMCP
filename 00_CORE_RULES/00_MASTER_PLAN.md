@@ -162,7 +162,7 @@ GeoSEOMCP/
 
 ### Phase 5: Polish & Deploy (Steps 11-12)
 - [x] Resources & Prompts (16 resources, 5 prompts)
-- [x] Deployment to roseclub.org:8081
+- [x] Deployment to roseclub.org:8081 (moved to :9081 on 2026-10-19: the router's 80xx rules overrode UPnP)
 - [x] End-to-end validation
 
 ### Future Considerations
@@ -173,4 +173,4 @@ GeoSEOMCP/
 
 ---
 
-**Last Updated:** 2026-03-20
+**Last Updated:** 2026-10-19 — reconciled the deployment port only: Phase 5's roseclub.org:8081 now carries its move to :9081. The rest of this plan was not re-reviewed.

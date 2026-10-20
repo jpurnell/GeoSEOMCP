@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Docs
+- **Public port moved to 90xx.** roseclub.org serves this on :9081 (was :8081) since
+  2026-10-19: the home router's own 80xx forwarding rules silently overrode UPnP, so the
+  public ports moved +1000, same port inside and out. README's public example and the
+  master plan's deployment item now say :9081. OAuth issuer URLs carry the port, so
+  `MCP_OAUTH_ISSUER` is now `https://roseclub.org:9081`. No code changed.
+
 ### Security
 - **SwiftMCPServer 5.0.2** (was 5.0.1), which moves its exact swift-oauth pin from
   1.0.0-beta.6 to 1.0.0-beta.7. No SwiftMCPServer source changed, and nothing in this
