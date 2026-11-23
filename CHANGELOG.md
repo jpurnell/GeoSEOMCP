@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- **swift-nio family brought to latest (resolved-version change only; no manifest or source change).**
+  Resolved before -> after: swift-nio 2.103.0 -> 2.105.0, swift-nio-ssl 2.37.0 -> 2.37.6,
+  swift-nio-extras 1.35.1 -> 1.35.2, async-http-client 1.33.1 -> 1.37.0; swift-nio-http2 (1.46.0),
+  swift-nio-transport-services (1.28.0) and SwiftMCPServer (5.8.0) were already latest/unchanged.
+- Advisories addressed: swift-nio-ssl GHSA-xfxg-9975-pc2j (critical; vulnerable 2.18.0 to 2.37.1, was resolving 2.37.0);
+  swift-nio GHSA-qcc5-f287-vgmq (high, <= 2.100.0), GHSA-r3rc-9hpw-54v9, GHSA-rj37-6j9x-74q6.
+- **Rebuild and redeploy needed: deployed binaries still contain the old version.**
+
 ### Docs
 - **Public port moved to 90xx.** roseclub.org serves this on :9081 (was :8081) since
   2026-10-19: the home router's own 80xx forwarding rules silently overrode UPnP, so the

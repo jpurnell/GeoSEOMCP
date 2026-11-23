@@ -82,7 +82,7 @@ new platforms appear and user-agent strings change, so it needs a maintenance st
 
 ---
 
-**Last Updated:** 2026-10-04 — SwiftMCPServer 5.0.0. Added the migration to Current Status.
+**Last Updated:** 2026-11-22 — resolved swift-nio 2.105.0 / swift-nio-ssl 2.37.6 (security advisories); previously 2026-10-04 — SwiftMCPServer 5.0.0. Added the migration to Current Status.
 The architecture line is unchanged in substance — transport, framing, and authentication
 still come from `SwiftMCPServer` — but two of that package's defaults moved and are now
 this server's behaviour: the HTTP listener is loopback-only until `--host` says otherwise,
