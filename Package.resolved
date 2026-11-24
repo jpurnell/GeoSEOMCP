@@ -1,5 +1,5 @@
 {
-  "originHash" : "ccb1cdeeb44ab2d25e6849a65e0baea23b60bc2095ba9153f98b1171871e668e",
+  "originHash" : "23ea38239f9e4f363db31ef17eb10af3e997ecb1e13726614473eb56ee4ec3cd",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -222,8 +222,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jpurnell/swift-oauth.git",
       "state" : {
-        "revision" : "ebb169585372f946d7f4561eaa4eed9cac5ea6b3",
-        "version" : "1.0.0-beta.13"
+        "revision" : "b0d30c7f03de9f89eb6f5505f5c9d2565f496bd8",
+        "version" : "1.0.0-beta.14"
       }
     },
     {
@@ -267,8 +267,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jpurnell/SwiftMCPServer.git",
       "state" : {
-        "revision" : "05ac7a5ffef281452b60be871a21bc0cac434d69",
-        "version" : "5.8.0"
+        "revision" : "96b31cc4f4920512c50bd40ab306f78e46750a07",
+        "version" : "5.9.2"
       }
     }
   ],
